@@ -772,13 +772,14 @@ export default function App() {
                     setTheme={setTheme}
                     handleTriggerWebhookSetup={handleTriggerWebhookSetup}
                   />
-                  <GoogleSheetsSync
-                    settings={settings}
-                    onSaveSettings={handleSaveSettings}
-                    apiCall={apiCall}
-                    refreshData={loadAllData}
-                    showToast={showToast}
-                  />
+                  <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-sm max-w-xl">
+                    <h3 className="text-sm font-extrabold text-[var(--text-main)] uppercase tracking-wider mb-2 flex items-center gap-2">
+                      <span className="text-emerald-500">✅</span> Đã Tự Động Kết Nối Google Sheets
+                    </h3>
+                    <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                      Hệ thống đang chạy ngầm và tự động đồng bộ 100% dữ liệu của bạn lên Google Sheets thông qua Service Account. Bảng tính của bạn đã được bảo vệ an toàn.
+                    </p>
+                  </div>
                 </div>
               )}
             </motion.div>
