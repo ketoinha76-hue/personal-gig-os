@@ -370,8 +370,17 @@ async function autoSyncToGoogleSheets() {
     console.log("Auto-syncing to Google Sheets...");
     await exportToGoogleSheets(token.token, spreadsheetId);
     console.log("Auto-sync complete.");
+    db.settings.lastSyncStatus = "Success";
+    db.settings.lastSyncTime = new Date().toISOString();
+    db.settings.lastSyncError = "";
+    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf8");
   } catch (err: any) {
     console.error("Auto-sync failed:", err.message);
+    const db = getDB();
+    db.settings.lastSyncStatus = "Error";
+    db.settings.lastSyncTime = new Date().toISOString();
+    db.settings.lastSyncError = err.message || "Unknown error";
+    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf8");
   }
 }
 
@@ -570,7 +579,7 @@ async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
   
   db.settings.googleSpreadsheetId = targetSpreadsheetId;
   db.settings.googleSpreadsheetUrl = `https://docs.google.com/spreadsheets/d/${targetSpreadsheetId}`;
-  saveDB(db);
+  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf8");
   
   return {
     spreadsheetId: targetSpreadsheetId,

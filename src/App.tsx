@@ -776,9 +776,21 @@ export default function App() {
                     <h3 className="text-sm font-extrabold text-[var(--text-main)] uppercase tracking-wider mb-2 flex items-center gap-2">
                       <span className="text-emerald-500">✅</span> Đã Tự Động Kết Nối Google Sheets
                     </h3>
-                    <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                    <p className="text-xs text-[var(--text-muted)] leading-relaxed mb-3">
                       Hệ thống đang chạy ngầm và tự động đồng bộ 100% dữ liệu của bạn lên Google Sheets thông qua Service Account. Bảng tính của bạn đã được bảo vệ an toàn.
                     </p>
+                    
+                    {settings.lastSyncStatus && (
+                      <div className={`p-3 rounded-lg border text-xs ${settings.lastSyncStatus === 'Error' ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'}`}>
+                        <strong>Trạng thái đồng bộ cuối:</strong> {settings.lastSyncStatus} <br/>
+                        <span className="text-[10px] opacity-70">Lúc: {new Date(settings.lastSyncTime || "").toLocaleString()}</span>
+                        {settings.lastSyncError && (
+                          <div className="mt-1 font-mono text-[10px] bg-black/30 p-2 rounded break-words">
+                            Lỗi: {settings.lastSyncError}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

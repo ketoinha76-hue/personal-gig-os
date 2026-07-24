@@ -110,6 +110,9 @@ export interface Settings {
   tuitionSheetUrl?: string;
   googleSpreadsheetId?: string;
   googleSpreadsheetUrl?: string;
+  lastSyncStatus?: string;
+  lastSyncTime?: string;
+  lastSyncError?: string;
 }
 
 export interface Tuition {
