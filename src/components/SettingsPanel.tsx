@@ -100,23 +100,12 @@ export default function SettingsPanel({
           </div>
 
           <div>
-            <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Google Gemini API Key</label>
-            <input
-              type="password"
-              className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-              value={formData.geminiApiKey || ""}
-              onChange={(e) => setFormData({ ...formData, geminiApiKey: e.target.value })}
-            />
-          </div>
-
-          <div>
             <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Google Spreadsheet ID (Dành cho Auto-Sync)</label>
             <input
               type="text"
-              placeholder="Vd: 1i7Ko3USW_UjsIeURYj9iNGcU91GYpyO9QooEdhNk8WY"
-              className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-              value={formData.googleSpreadsheetId || ""}
-              onChange={(e) => setFormData({ ...formData, googleSpreadsheetId: e.target.value })}
+              readOnly
+              className="w-full bg-black/40 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-muted)] cursor-not-allowed"
+              value="1i7Ko3USW_UjsIeURYj9iNGcU91GYpyO9QooEdhNk8WY"
             />
           </div>
 

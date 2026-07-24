@@ -920,7 +920,7 @@ export default function RouteManager({
                         onChange={() => toggleRouteSelection(c.id)}
                         className="accent-[var(--primary)]"
                       />
-                      <span className="line-clamp-1">[{c.company}] {c.name} {c.address ? `(${c.address})` : ''}</span>
+                      <span className="line-clamp-1">{c.name} {c.address ? `(${c.address})` : ''}</span>
                     </label>
                   ));
                 })()}
