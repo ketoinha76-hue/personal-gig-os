@@ -282,29 +282,6 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
         </button>
       </div>
 
-      {/* AI Smart Care Panel */}
-      <div className="bg-gradient-to-br from-[rgba(16,185,129,0.05)] to-[rgba(99,102,241,0.05)] border border-[rgba(16,185,129,0.12)] rounded-2xl p-5 mb-6">
-        <h4 className="font-extrabold text-sm text-[var(--text-main)] flex items-center gap-2">
-          <span>🤖</span> AI Smart Care (Chăm sóc Zalo tự động)
-        </h4>
-        <p className="text-xs text-[var(--text-muted)] my-2">Hệ thống hỗ trợ soạn nhanh mẫu thư chăm sóc bằng AI và chuyển tiếp sang Zalo một chạm.</p>
-        <div className="flex flex-col gap-3 mt-4">
-          {crmContacts.map((c) => (
-            <div key={c.id} className="flex justify-between items-center bg-black/10 border border-[var(--border-color)] p-3 rounded-xl">
-              <div className="text-xs font-bold text-[var(--text-main)]">
-                {c.name} ({c.phone}) - <span className="text-[var(--text-muted)] text-[11px]">{c.company}</span>
-              </div>
-              <button
-                onClick={() => handleComposeZaloMsg(c)}
-                className="px-3 py-1.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-xs font-bold rounded-lg cursor-pointer transition-all shadow-sm"
-              >
-                💬 Soạn tin & Gửi Zalo
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Contacts List Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {crmContacts.map((c) => (

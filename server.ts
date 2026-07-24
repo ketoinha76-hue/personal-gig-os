@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 const DB_FILE = path.join(process.cwd(), "db.json");
 const UPLOADS_DIR = path.join(process.cwd(), "uploads");
 
@@ -1686,6 +1686,17 @@ async function startServer() {
     app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
+  }
+
+  // One-time cleanup script to remove unused projects
+  const db = getDB();
+  const removeProjectIds = ["p-2", "p-3", "p-4"];
+  const originalLength = db.projects?.length || 0;
+  if (db.projects) {
+    db.projects = db.projects.filter((p: any) => !removeProjectIds.includes(p.id));
+    if (db.projects.length !== originalLength) {
+      saveDB(db);
+    }
   }
 
   app.listen(PORT, "0.0.0.0", () => {

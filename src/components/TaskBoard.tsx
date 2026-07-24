@@ -251,29 +251,6 @@ export default function TaskBoard({
 
   return (
     <div>
-      {/* Sub tabs inside Task Menu */}
-      <div className="flex gap-2 mb-6 border-b border-[var(--border-color)] pb-3">
-        <button
-          onClick={() => setActiveSubTab("kanban")}
-          className={`px-4 py-2 text-xs font-extrabold transition-all cursor-pointer border-b-2 ${
-            activeTab === "kanban"
-              ? "border-[var(--primary)] text-[var(--primary)]"
-              : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)]"
-          }`}
-        >
-          📋 Bảng Kanban Công việc
-        </button>
-        <button
-          onClick={() => setActiveSubTab("grab")}
-          className={`px-4 py-2 text-xs font-extrabold transition-all cursor-pointer border-b-2 ${
-            activeTab === "grab"
-              ? "border-[var(--primary)] text-[var(--primary)]"
-              : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)]"
-          }`}
-        >
-          🏍️ Kế Toán & Lãi Ròng Grab
-        </button>
-      </div>
 
       {activeTab === "kanban" ? (
         <div>
