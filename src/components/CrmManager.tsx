@@ -25,6 +25,9 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
     value: ""
   });
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterGroup, setFilterGroup] = useState("All");
+
   // Invoice / Contract states
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [invoiceData, setInvoiceData] = useState({
@@ -272,19 +275,50 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 className="text-xl font-extrabold text-[var(--text-main)]">Quản lý Hồ sơ khách hàng</h2>
-        <button
-          onClick={handleOpenAdd}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[var(--primary)] text-white text-xs font-bold rounded-xl cursor-pointer hover:bg-[var(--primary-hover)] transition-all shadow-sm"
-        >
-          + Thêm Khách hàng
-        </button>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <input
+            type="text"
+            placeholder="🔍 Tìm tên khách hàng..."
+            className="flex-1 sm:w-64 bg-black/20 border border-[var(--border-color)] rounded-xl px-3 py-2 text-xs text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <select
+            className="bg-black/20 border border-[var(--border-color)] rounded-xl px-3 py-2 text-xs text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)] cursor-pointer"
+            value={filterGroup}
+            onChange={(e) => setFilterGroup(e.target.value)}
+          >
+            <option value="All" className="bg-slate-800 text-white">Tất cả Nhóm</option>
+            <option value="Khách hàng ngày chẵn" className="bg-slate-800 text-white">Khách hàng ngày chẵn</option>
+            <option value="Khách hàng ngày lẻ" className="bg-slate-800 text-white">Khách hàng ngày lẻ</option>
+            <option value="Nhà riêng" className="bg-slate-800 text-white">Nhà riêng (Yakult)</option>
+            <option value="Đại lý" className="bg-slate-800 text-white">Đại lý (Yakult)</option>
+            <option value="Học viên Guitar" className="bg-slate-800 text-white">Học viên Guitar</option>
+            <option value="Khách cưới" className="bg-slate-800 text-white">Khách cưới</option>
+          </select>
+          <button
+            onClick={handleOpenAdd}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-[var(--primary)] text-white text-xs font-bold rounded-xl cursor-pointer hover:bg-[var(--primary-hover)] transition-all shadow-sm"
+          >
+            + Thêm
+          </button>
+        </div>
       </div>
 
       {/* Contacts List Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {crmContacts.map((c) => (
+        {crmContacts
+          .filter((c) => {
+            const matchSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                (c.phone && c.phone.includes(searchTerm));
+            const matchGroup = filterGroup === "All" || c.company === filterGroup || 
+                               (filterGroup === "Nhà riêng" && c.company === "Nhà riêng") ||
+                               (filterGroup === "Đại lý" && c.company === "Đại lý"); // Using exact match to handle Yakult variations if needed
+            return matchSearch && matchGroup;
+          })
+          .map((c) => (
           <div key={c.id} className="bg-[var(--bg-card)] border border-[var(--border-color)] p-5 rounded-2xl flex flex-col shadow-sm relative overflow-hidden">
             <div className="flex justify-between items-start gap-2">
               <div>

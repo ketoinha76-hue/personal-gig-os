@@ -52,6 +52,15 @@ export default function RouteManager({
   const [optimizedRoutePath, setOptimizedRoutePath] = useState<any[]>([]);
   const routeMapRef = useRef<any>(null);
 
+  const [routeSearchTerm, setRouteSearchTerm] = useState("");
+  const [routeFilterGroup, setRouteFilterGroup] = useState("All");
+
+  const [isTracking, setIsTracking] = useState(false);
+  const [trackingStartTime, setTrackingStartTime] = useState<number | null>(null);
+  const [trackingDistance, setTrackingDistance] = useState(0);
+  const [lastCheckTime, setLastCheckTime] = useState<number | null>(null);
+  const [showTrackingSummary, setShowTrackingSummary] = useState(false);
+
   // Modal / Scheduling state
   const [showSchModal, setShowSchModal] = useState(false);
   const [editingSch, setEditingSch] = useState<Schedule | null>(null);
@@ -185,11 +194,19 @@ export default function RouteManager({
     pathPoints.push([depotLat, depotLng]);
 
     // Draw lines using OSRM
-    if (pathPoints.length > 1) {
-      const osrmCoords = pathPoints.map(p => `${p[1]},${p[0]}`).join(";");
-      const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${osrmCoords}?overview=full&geometries=geojson`;
+    if (pathPoints.length > 2) {
+      // Split into outbound and return
+      const outboundPoints = pathPoints.slice(0, pathPoints.length - 1);
+      const returnPoints = [pathPoints[pathPoints.length - 2], pathPoints[pathPoints.length - 1]];
 
-      fetch(osrmUrl)
+      const osrmOutboundCoords = outboundPoints.map(p => `${p[1]},${p[0]}`).join(";");
+      const osrmReturnCoords = returnPoints.map(p => `${p[1]},${p[0]}`).join(";");
+
+      const osrmOutboundUrl = `https://router.project-osrm.org/route/v1/driving/${osrmOutboundCoords}?overview=full&geometries=geojson`;
+      const osrmReturnUrl = `https://router.project-osrm.org/route/v1/driving/${osrmReturnCoords}?overview=full&geometries=geojson`;
+
+      // Outbound (Pink)
+      fetch(osrmOutboundUrl)
         .then(res => res.json())
         .then(data => {
           if (data.code === "Ok" && data.routes && data.routes[0]) {
@@ -198,15 +215,28 @@ export default function RouteManager({
               style: { color: "var(--rose)", weight: 5, opacity: 0.8 }
             }).addTo(map);
             map.fitBounds(roadLine.getBounds());
-          } else {
-            throw new Error();
           }
-        })
-        .catch(() => {
-          // fallback direct dash line
-          const line = L.polyline(pathPoints, { color: "var(--rose)", weight: 4, dashArray: "5, 8" }).addTo(map);
-          map.fitBounds(line.getBounds());
+        }).catch(() => {
+          L.polyline(outboundPoints, { color: "var(--rose)", weight: 4, dashArray: "5, 8" }).addTo(map);
         });
+
+      // Return (Blue)
+      fetch(osrmReturnUrl)
+        .then(res => res.json())
+        .then(data => {
+          if (data.code === "Ok" && data.routes && data.routes[0]) {
+            const roadGeo = data.routes[0].geometry;
+            L.geoJSON(roadGeo, {
+              style: { color: "#3b82f6", weight: 5, opacity: 0.8, dashArray: "10, 10" } // dashed blue line for return
+            }).addTo(map);
+          }
+        }).catch(() => {
+          L.polyline(returnPoints, { color: "#3b82f6", weight: 4, dashArray: "5, 8" }).addTo(map);
+        });
+    } else if (pathPoints.length === 2) {
+      // Direct dash line if only 2 points
+      const line = L.polyline(pathPoints, { color: "var(--rose)", weight: 4, dashArray: "5, 8" }).addTo(map);
+      map.fitBounds(line.getBounds());
     }
   };
 
@@ -292,6 +322,36 @@ export default function RouteManager({
     const updated = [...optimizedRoutePath];
     updated[idx].completed = !updated[idx].completed;
     setOptimizedRoutePath(updated);
+
+    if (isTracking && updated[idx].completed) {
+      const now = Date.now();
+      let depotLat = 10.8087727;
+      let depotLng = 106.9241267;
+      const extractedStart = extractCoordinates(depotCoords);
+      if (extractedStart) {
+        depotLat = extractedStart[0];
+        depotLng = extractedStart[1];
+      }
+      
+      let addedDist = 0;
+      if (idx === 0) {
+        addedDist = getDistance([depotLat, depotLng], updated[idx].coords) * 111;
+      } else {
+        addedDist = getDistance(updated[idx-1].coords, updated[idx].coords) * 111;
+      }
+      
+      setTrackingDistance(prev => prev + addedDist);
+      setLastCheckTime(now);
+
+      const allCompleted = updated.every(pt => pt.completed);
+      if (allCompleted) {
+        const returnDist = getDistance(updated[updated.length-1].coords, [depotLat, depotLng]) * 111;
+        setTrackingDistance(prev => prev + returnDist);
+        setIsTracking(false);
+        setShowTrackingSummary(true);
+        showToast("Đã hoàn thành toàn bộ lộ trình!", "success");
+      }
+    }
 
     let depotLat = 10.8087727;
     let depotLng = 106.9241267;
@@ -791,22 +851,79 @@ export default function RouteManager({
             </div>
 
             <div>
-              <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Chọn khách hàng cần giao sữa hôm nay</label>
-              <div className="flex flex-col gap-2 max-h-44 overflow-y-auto border border-[var(--border-color)] p-3 rounded-xl bg-black/10 mt-1.5">
-                {crmContacts.filter(c => c.company === "Nhà riêng" || c.company === "Đại lý").map((c) => (
-                  <label key={c.id} className="flex items-center gap-2.5 text-xs text-[var(--text-main)] cursor-pointer py-1 hover:bg-white/[0.02]">
-                    <input
-                      type="checkbox"
-                      checked={selectedCrmRouteIds.includes(c.id)}
-                      onChange={() => toggleRouteSelection(c.id)}
-                      className="accent-[var(--primary)]"
-                    />
-                    <span className="line-clamp-1">{c.name} ({c.address})</span>
-                  </label>
-                ))}
-                {crmContacts.filter(c => c.company === "Nhà riêng" || c.company === "Đại lý").length === 0 && (
-                  <div className="text-[11px] text-[var(--text-muted)] italic text-center py-4">Không tìm thấy khách hàng sữa nào.</div>
-                )}
+              <div className="flex justify-between items-end mb-1.5">
+                <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Chọn khách hàng cần giao sữa hôm nay</label>
+              </div>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  placeholder="🔍 Tìm tên..."
+                  className="flex-1 bg-black/20 border border-[var(--border-color)] rounded-lg px-2 py-1.5 text-xs text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+                  value={routeSearchTerm}
+                  onChange={(e) => setRouteSearchTerm(e.target.value)}
+                />
+                <select
+                  className="bg-black/20 border border-[var(--border-color)] rounded-lg px-2 py-1.5 text-xs text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)] cursor-pointer"
+                  value={routeFilterGroup}
+                  onChange={(e) => setRouteFilterGroup(e.target.value)}
+                >
+                  <option value="All" className="bg-slate-800">Tất cả Sữa</option>
+                  <option value="Khách hàng ngày chẵn" className="bg-slate-800">Ngày chẵn</option>
+                  <option value="Khách hàng ngày lẻ" className="bg-slate-800">Ngày lẻ</option>
+                  <option value="Nhà riêng" className="bg-slate-800">Nhà riêng (Yakult)</option>
+                  <option value="Đại lý" className="bg-slate-800">Đại lý (Yakult)</option>
+                </select>
+              </div>
+              
+              <div className="flex gap-2 mb-2">
+                <button
+                  onClick={() => {
+                    const filtered = crmContacts.filter(c => {
+                      const isMilk = ["Nhà riêng", "Đại lý", "Khách hàng ngày chẵn", "Khách hàng ngày lẻ"].includes(c.company);
+                      const matchGroup = routeFilterGroup === "All" || c.company === routeFilterGroup;
+                      const matchSearch = c.name.toLowerCase().includes(routeSearchTerm.toLowerCase());
+                      return isMilk && matchGroup && matchSearch;
+                    });
+                    const newIds = [...new Set([...selectedCrmRouteIds, ...filtered.map(f => f.id)])];
+                    setSelectedCrmRouteIds(newIds);
+                  }}
+                  className="flex-1 py-1 bg-black/40 hover:bg-black/60 border border-[var(--border-color)] text-[var(--text-main)] text-[11px] font-bold rounded-lg cursor-pointer transition-all"
+                >
+                  Chọn lọc
+                </button>
+                <button
+                  onClick={() => setSelectedCrmRouteIds([])}
+                  className="flex-1 py-1 bg-black/40 hover:bg-black/60 border border-[var(--border-color)] text-[var(--text-main)] text-[11px] font-bold rounded-lg cursor-pointer transition-all"
+                >
+                  Bỏ chọn tất cả
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-2 max-h-44 overflow-y-auto border border-[var(--border-color)] p-3 rounded-xl bg-black/10">
+                {(() => {
+                  const filteredContacts = crmContacts.filter(c => {
+                    const isMilk = ["Nhà riêng", "Đại lý", "Khách hàng ngày chẵn", "Khách hàng ngày lẻ"].includes(c.company);
+                    const matchGroup = routeFilterGroup === "All" || c.company === routeFilterGroup;
+                    const matchSearch = c.name.toLowerCase().includes(routeSearchTerm.toLowerCase());
+                    return isMilk && matchGroup && matchSearch;
+                  });
+
+                  if (filteredContacts.length === 0) {
+                    return <div className="text-[11px] text-[var(--text-muted)] italic text-center py-4">Không tìm thấy khách hàng sữa nào.</div>;
+                  }
+
+                  return filteredContacts.map((c) => (
+                    <label key={c.id} className="flex items-center gap-2.5 text-xs text-[var(--text-main)] cursor-pointer py-1 hover:bg-white/[0.02]">
+                      <input
+                        type="checkbox"
+                        checked={selectedCrmRouteIds.includes(c.id)}
+                        onChange={() => toggleRouteSelection(c.id)}
+                        className="accent-[var(--primary)]"
+                      />
+                      <span className="line-clamp-1">[{c.company}] {c.name} {c.address ? `(${c.address})` : ''}</span>
+                    </label>
+                  ));
+                })()}
               </div>
             </div>
 
@@ -819,7 +936,27 @@ export default function RouteManager({
 
             {optimizedRoutePath.length > 0 && (
               <div className="mt-4 pt-4 border-t border-[var(--border-color)]">
-                <strong className="text-xs font-extrabold text-emerald-500 uppercase tracking-wider block mb-3">📍 Thứ tự di chuyển tối ưu:</strong>
+                <div className="flex justify-between items-center mb-3">
+                  <strong className="text-xs font-extrabold text-emerald-500 uppercase tracking-wider">📍 Thứ tự di chuyển tối ưu:</strong>
+                  {!isTracking && !optimizedRoutePath.every(pt => pt.completed) && (
+                    <button 
+                      onClick={() => {
+                        setIsTracking(true);
+                        setTrackingStartTime(Date.now());
+                        setLastCheckTime(Date.now());
+                        setTrackingDistance(0);
+                        showToast("Đã bắt đầu tính giờ & quãng đường!", "info");
+                      }}
+                      className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg text-xs"
+                    >
+                      ▶ Bắt đầu lộ trình
+                    </button>
+                  )}
+                  {isTracking && (
+                    <span className="text-xs text-amber-500 font-bold animate-pulse">⏳ Đang chạy lộ trình...</span>
+                  )}
+                </div>
+                
                 <ol className="flex flex-col gap-3.5 pl-1.5 text-xs">
                   <li className="flex gap-3 items-center">
                     <span className="w-5 h-5 rounded-full bg-[var(--primary)] text-white flex items-center justify-center font-bold text-[10px]">🏁</span>
@@ -853,7 +990,39 @@ export default function RouteManager({
         </div>
       )}
 
-      {/* SCHEDULE ADD/EDIT MODAL */}
+      {/* SCHEDULE ADD/EDIT MODAL ... */}
+      {showTrackingSummary && trackingStartTime && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl w-full max-w-sm p-6 shadow-2xl relative text-center">
+            <h3 className="text-xl font-extrabold text-[var(--text-main)] mb-2 uppercase tracking-wider text-emerald-400">🎉 Hoàn thành lộ trình!</h3>
+            <p className="text-[var(--text-muted)] text-sm mb-6">Bạn đã hoàn thành xuất sắc tất cả các điểm giao sữa hôm nay.</p>
+            
+            <div className="flex gap-4 mb-6">
+              <div className="flex-1 bg-black/20 border border-[var(--border-color)] p-4 rounded-xl flex flex-col items-center">
+                <span className="text-xs text-[var(--text-muted)] uppercase tracking-wider mb-1 font-bold">Quãng đường</span>
+                <span className="text-2xl text-[var(--text-main)] font-extrabold">{trackingDistance.toFixed(1)} <span className="text-sm">km</span></span>
+              </div>
+              <div className="flex-1 bg-black/20 border border-[var(--border-color)] p-4 rounded-xl flex flex-col items-center">
+                <span className="text-xs text-[var(--text-muted)] uppercase tracking-wider mb-1 font-bold">Thời gian</span>
+                <span className="text-2xl text-[var(--text-main)] font-extrabold">{Math.round((Date.now() - trackingStartTime) / 60000)} <span className="text-sm">phút</span></span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                setShowTrackingSummary(false);
+                setTrackingStartTime(null);
+                setTrackingDistance(0);
+                setOptimizedRoutePath([]);
+                setSelectedCrmRouteIds([]);
+              }}
+              className="w-full py-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-sm font-bold rounded-xl transition-all uppercase tracking-wider shadow-lg shadow-[var(--primary)]/20"
+            >
+              Đóng & Kết thúc
+            </button>
+          </div>
+        </div>
+      )}
       {showSchModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-fadeIn">
           <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl w-full max-w-lg p-6 shadow-2xl relative">
