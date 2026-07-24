@@ -59,6 +59,7 @@ export default function RouteManager({
   const [trackingStartTime, setTrackingStartTime] = useState<number | null>(null);
   const [trackingDistance, setTrackingDistance] = useState(0);
   const [lastCheckTime, setLastCheckTime] = useState<number | null>(null);
+  const [completedRouteDetails, setCompletedRouteDetails] = useState<any[]>([]);
   const [showTrackingSummary, setShowTrackingSummary] = useState(false);
 
   // Travel Log State
@@ -79,6 +80,7 @@ export default function RouteManager({
           setTrackingStartTime(parsed.trackingStartTime || null);
           setTrackingDistance(parsed.trackingDistance || 0);
           setLastCheckTime(parsed.lastCheckTime || null);
+          setCompletedRouteDetails(parsed.completedRouteDetails || []);
         }
       } catch (err) {
         console.error("Failed to parse activeRouteState", err);
@@ -96,9 +98,10 @@ export default function RouteManager({
       isTracking,
       trackingStartTime,
       trackingDistance,
-      lastCheckTime
+      lastCheckTime,
+      completedRouteDetails
     }));
-  }, [isLoaded, selectedCrmRouteIds, optimizedRoutePath, isTracking, trackingStartTime, trackingDistance, lastCheckTime]);
+  }, [isLoaded, selectedCrmRouteIds, optimizedRoutePath, isTracking, trackingStartTime, trackingDistance, lastCheckTime, completedRouteDetails]);
 
   const fetchRouteLogs = async () => {
     try {
@@ -394,6 +397,15 @@ export default function RouteManager({
         addedDist = getDistance(updated[idx-1].coords, updated[idx].coords) * 111;
       }
       
+      const timeTakenMs = now - (lastCheckTime || trackingStartTime || now);
+      const newDetail = {
+        name: updated[idx].name,
+        distanceKm: addedDist,
+        timeTakenMs: timeTakenMs
+      };
+      const updatedDetails = [...completedRouteDetails, newDetail];
+      setCompletedRouteDetails(updatedDetails);
+      
       setTrackingDistance(prev => prev + addedDist);
       setLastCheckTime(now);
 
@@ -415,7 +427,8 @@ export default function RouteManager({
             startTime: sTimeStr,
             endTime: eTimeStr,
             totalDistanceKm: totalDist,
-            customers: customerNames
+            customers: customerNames,
+            details: updatedDetails
           }).then(() => {
             fetchRouteLogs();
             // Clear localStorage
@@ -1068,6 +1081,15 @@ export default function RouteManager({
                         Giao cho: <strong className="text-[var(--text-main)]">{pt.name}</strong> <br/>
                         <span className="text-[11px] text-[var(--text-muted)]">{pt.address}</span>
                       </div>
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${pt.coords[0]},${pt.coords[1]}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-auto p-1.5 bg-blue-900/20 text-blue-400 border border-blue-500/20 rounded-md hover:bg-blue-600/30 transition-all flex items-center justify-center"
+                        title="Chỉ đường Google Map"
+                      >
+                        <Map className="w-3.5 h-3.5" />
+                      </a>
                     </li>
                   ))}
                 </ol>
@@ -1111,9 +1133,22 @@ export default function RouteManager({
                         </span>
                       </div>
                       
-                      <div className="text-[11.5px] text-[var(--text-muted)] line-clamp-3 leading-relaxed">
-                        <strong className="text-[var(--text-main)]">Đã giao:</strong> {log.customers.join(", ")}
-                      </div>
+                      {log.details && log.details.length > 0 ? (
+                        <div className="mt-1 flex flex-col gap-1.5 max-h-[120px] overflow-y-auto custom-scrollbar pr-1">
+                          {log.details.map((d: any, i: number) => (
+                            <div key={i} className="flex items-center justify-between text-[11px] bg-black/20 px-2 py-1.5 rounded-lg border border-white/5">
+                              <span className="text-[var(--text-main)] font-semibold truncate max-w-[130px]" title={d.name}>{d.name}</span>
+                              <span className="text-[var(--text-muted)] font-mono shrink-0">
+                                {d.distanceKm.toFixed(1)}km <span className="mx-1 text-white/20">|</span> {Math.floor(d.timeTakenMs/60000)}p{Math.floor((d.timeTakenMs%60000)/1000)}s
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-[11.5px] text-[var(--text-muted)] line-clamp-3 leading-relaxed">
+                          <strong className="text-[var(--text-main)]">Đã giao:</strong> {log.customers.join(", ")}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

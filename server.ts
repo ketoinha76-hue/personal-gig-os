@@ -1288,7 +1288,8 @@ app.post("/api/route-logs", (req, res) => {
     startTime: req.body.startTime || "",
     endTime: req.body.endTime || "",
     totalDistanceKm: Number(req.body.totalDistanceKm) || 0,
-    customers: req.body.customers || []
+    customers: req.body.customers || [],
+    details: req.body.details || []
   };
   if (!db.routeLogs) db.routeLogs = [];
   db.routeLogs.push(newLog);

@@ -149,4 +149,9 @@ export interface RouteLog {
   endTime: string;
   totalDistanceKm: number;
   customers: string[];
+  details?: {
+    name: string;
+    distanceKm: number;
+    timeTakenMs: number;
+  }[];
 }
