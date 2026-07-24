@@ -319,42 +319,70 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
             return matchSearch && matchGroup;
           })
           .map((c, idx) => (
-          <div key={c.id} className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl px-4 py-3 flex flex-col md:flex-row md:items-center gap-3 md:gap-4 hover:border-[rgba(99,102,241,0.3)] transition-all group">
-            
-            {/* 1. STT & Name & Group (Fixed Width on Desktop) */}
-            <div className="flex items-center gap-3 md:w-[220px] shrink-0">
-              <span className="text-[10px] text-[var(--text-muted)] font-mono w-5 shrink-0 text-center">{idx + 1}</span>
-              <div className="flex flex-col min-w-0">
-                <span className="text-[13.5px] font-bold text-[var(--text-main)] truncate block leading-tight">{c.name}</span>
-                <span className={`text-[9.5px] font-bold mt-1.5 px-2 py-0.5 rounded-full border w-fit ${
-                  c.company === "Khách hàng ngày chẵn" ? "bg-blue-900/20 text-blue-400 border-blue-500/20" :
-                  c.company === "Khách hàng ngày lẻ" ? "bg-violet-900/20 text-violet-400 border-violet-500/20" :
-                  c.company === "Nhà riêng" ? "bg-amber-900/20 text-amber-400 border-amber-500/20" :
-                  c.company === "Đại lý" ? "bg-emerald-900/20 text-emerald-400 border-emerald-500/20" :
-                  "bg-white/5 text-[var(--text-muted)] border-white/10"
-                }`}>
-                  {c.company}
-                </span>
-              </div>
+          <div key={c.id} className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl px-4 py-4 flex flex-col md:grid md:grid-cols-12 gap-4 items-start md:items-center hover:border-[rgba(99,102,241,0.4)] transition-all shadow-sm">
+            {/* Col 1: Tên & Nhóm */}
+            <div className="md:col-span-3 flex flex-col w-full min-w-0">
+              <span className="text-[14px] font-extrabold text-[var(--text-main)] truncate block">{c.name}</span>
+              <span className={`text-[10px] font-bold mt-1.5 px-2 py-0.5 rounded-full border w-fit ${
+                c.company === "Khách hàng ngày chẵn" ? "bg-blue-900/20 text-blue-400 border-blue-500/20" :
+                c.company === "Khách hàng ngày lẻ" ? "bg-violet-900/20 text-violet-400 border-violet-500/20" :
+                c.company === "Nhà riêng" ? "bg-amber-900/20 text-amber-400 border-amber-500/20" :
+                c.company === "Đại lý" ? "bg-emerald-900/20 text-emerald-400 border-emerald-500/20" :
+                "bg-white/5 text-[var(--text-muted)] border-white/10"
+              }`}>
+                {c.company}
+              </span>
             </div>
 
-            {/* 2. Details (Flexible space) */}
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 flex-1 text-[11.5px] text-[var(--text-muted)] font-medium">
-              {c.phone && <div className="flex items-center gap-1.5">📞 <span className="text-[var(--text-main)]">{c.phone}</span></div>}
-              {c.birthYear && <div className="flex items-center gap-1.5">🎂 <span>{c.birthYear}</span></div>}
-              {c.value > 0 && <div className="flex items-center gap-1.5">💵 <strong className="text-emerald-500">{c.value.toLocaleString("vi-VN")} đ</strong></div>}
-              {c.address && <div className="flex items-center gap-1.5 w-full md:w-auto md:flex-1 min-w-[150px] truncate">📍 <span className="truncate" title={c.address}>{c.address}</span></div>}
+            {/* Col 2: Liên hệ (Phone & Address) */}
+            <div className="md:col-span-4 flex flex-col gap-1.5 w-full text-[12px] text-[var(--text-muted)] border-l-0 md:border-l border-[var(--border-color)] md:pl-4">
+              {c.phone ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] uppercase font-bold text-white/30 w-6">SĐT</span>
+                  <span className="font-mono text-[var(--text-main)] font-semibold">{c.phone}</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 italic opacity-50"><span className="text-[10px] uppercase font-bold text-white/30 w-6">SĐT</span> -</div>
+              )}
+              {c.address ? (
+                <div className="flex items-start gap-2">
+                  <span className="text-[10px] uppercase font-bold text-white/30 w-6 shrink-0 mt-0.5">Đ.Chỉ</span>
+                  <span className="truncate flex-1" title={c.address}>{c.address}</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 italic opacity-50"><span className="text-[10px] uppercase font-bold text-white/30 w-6">Đ.Chỉ</span> -</div>
+              )}
             </div>
 
-            {/* 3. Actions */}
-            <div className="flex items-center gap-1.5 shrink-0 mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-[var(--border-color)] md:opacity-50 md:group-hover:opacity-100 transition-opacity justify-end">
+            {/* Col 3: Thông tin phụ (Birth & Value) */}
+            <div className="md:col-span-3 flex flex-col gap-1.5 w-full text-[12px] text-[var(--text-muted)] border-l-0 md:border-l border-[var(--border-color)] md:pl-4">
+              {c.birthYear ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] uppercase font-bold text-white/30 w-9">N.Sinh</span>
+                  <span className="text-[var(--text-main)] font-semibold">{c.birthYear}</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 italic opacity-50"><span className="text-[10px] uppercase font-bold text-white/30 w-9">N.Sinh</span> -</div>
+              )}
+              {c.value > 0 ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] uppercase font-bold text-white/30 w-9">T.Giá</span>
+                  <strong className="text-emerald-400 font-mono">{c.value.toLocaleString("vi-VN")} đ</strong>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 italic opacity-50"><span className="text-[10px] uppercase font-bold text-white/30 w-9">T.Giá</span> -</div>
+              )}
+            </div>
+
+            {/* Col 4: Thao tác */}
+            <div className="md:col-span-2 flex items-center md:justify-end gap-2 w-full mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-[var(--border-color)]">
               <button
                 onClick={() => {
                   setInvoiceData({ customerName: c.name, date: new Date().toLocaleDateString("vi-VN"), value: c.value });
                   setShowInvoiceModal(true);
                 }}
                 title="Tạo phiếu thu"
-                className="flex items-center justify-center p-2 rounded-lg bg-[var(--overlay-03)] hover:bg-[var(--overlay-06)] border border-[var(--border-color)] text-[var(--text-main)] transition-all cursor-pointer text-xs"
+                className="flex items-center justify-center p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20 hover:scale-105 transition-all cursor-pointer text-[13px] border border-[var(--primary)]/20"
               >
                 🧾
               </button>
@@ -364,7 +392,7 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
                   target="_blank"
                   rel="noopener noreferrer"
                   title="Chỉ đường"
-                  className="flex items-center justify-center p-2 rounded-lg hover:bg-blue-500/10 text-blue-400 hover:text-blue-300 transition-all cursor-pointer text-xs"
+                  className="flex items-center justify-center p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:scale-105 transition-all cursor-pointer text-[13px] border border-blue-500/20"
                 >
                   🧭
                 </a>
@@ -372,14 +400,14 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
               <button
                 onClick={() => handleOpenEdit(c)}
                 title="Sửa"
-                className="flex items-center justify-center p-2 rounded-lg hover:bg-[var(--overlay-06)] text-[var(--text-muted)] hover:text-[var(--primary)] transition-all cursor-pointer text-xs"
+                className="flex items-center justify-center p-2 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 hover:scale-105 transition-all cursor-pointer text-[13px] border border-amber-500/20"
               >
                 ✏️
               </button>
               <button
                 onClick={() => onDelete(c.id)}
                 title="Xóa"
-                className="flex items-center justify-center p-2 rounded-lg hover:bg-rose-500/10 text-[var(--text-muted)] hover:text-rose-400 transition-all cursor-pointer text-xs"
+                className="flex items-center justify-center p-2 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 hover:scale-105 transition-all cursor-pointer text-[13px] border border-rose-500/20"
               >
                 🗑️
               </button>
