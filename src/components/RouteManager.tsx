@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { CrmContact, Schedule } from "../types";
+import { CrmContact, Schedule, RouteLog } from "../types";
 import { 
   Calendar, 
   Map, 
@@ -60,6 +60,60 @@ export default function RouteManager({
   const [trackingDistance, setTrackingDistance] = useState(0);
   const [lastCheckTime, setLastCheckTime] = useState<number | null>(null);
   const [showTrackingSummary, setShowTrackingSummary] = useState(false);
+
+  // Travel Log State
+  const [mapTab, setMapTab] = useState<"route" | "log">("route");
+  const [routeLogs, setRouteLogs] = useState<RouteLog[]>([]);
+
+  // Load from localStorage ONCE on mount
+  const [isLoaded, setIsLoaded] = useState(false);
+  useEffect(() => {
+    const saved = localStorage.getItem('activeRouteState');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.optimizedRoutePath && parsed.optimizedRoutePath.length > 0) {
+          setSelectedCrmRouteIds(parsed.selectedCrmRouteIds || []);
+          setOptimizedRoutePath(parsed.optimizedRoutePath);
+          setIsTracking(parsed.isTracking || false);
+          setTrackingStartTime(parsed.trackingStartTime || null);
+          setTrackingDistance(parsed.trackingDistance || 0);
+          setLastCheckTime(parsed.lastCheckTime || null);
+        }
+      } catch (err) {
+        console.error("Failed to parse activeRouteState", err);
+      }
+    }
+    setIsLoaded(true);
+  }, []);
+
+  // Save to localStorage when tracking state changes
+  useEffect(() => {
+    if (!isLoaded) return;
+    localStorage.setItem('activeRouteState', JSON.stringify({
+      selectedCrmRouteIds,
+      optimizedRoutePath,
+      isTracking,
+      trackingStartTime,
+      trackingDistance,
+      lastCheckTime
+    }));
+  }, [isLoaded, selectedCrmRouteIds, optimizedRoutePath, isTracking, trackingStartTime, trackingDistance, lastCheckTime]);
+
+  const fetchRouteLogs = async () => {
+    try {
+      const data = await apiCall("/api/route-logs");
+      if (data) setRouteLogs(data.reverse()); // Show newest first
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    if (mapTab === "log") {
+      fetchRouteLogs();
+    }
+  }, [mapTab]);
 
   // Modal / Scheduling state
   const [showSchModal, setShowSchModal] = useState(false);
@@ -346,10 +400,28 @@ export default function RouteManager({
       const allCompleted = updated.every(pt => pt.completed);
       if (allCompleted) {
         const returnDist = getDistance(updated[updated.length-1].coords, [depotLat, depotLng]) * 111;
-        setTrackingDistance(prev => prev + returnDist);
+        const totalDist = trackingDistance + addedDist + returnDist;
+        setTrackingDistance(totalDist);
         setIsTracking(false);
         setShowTrackingSummary(true);
         showToast("Đã hoàn thành toàn bộ lộ trình!", "success");
+
+        // Save to backend Log
+        if (trackingStartTime) {
+          const sTimeStr = new Date(trackingStartTime).toLocaleTimeString("vi-VN");
+          const eTimeStr = new Date(now).toLocaleTimeString("vi-VN");
+          const customerNames = updated.map(u => u.name);
+          apiCall("/api/route-logs", "POST", {
+            startTime: sTimeStr,
+            endTime: eTimeStr,
+            totalDistanceKm: totalDist,
+            customers: customerNames
+          }).then(() => {
+            fetchRouteLogs();
+            // Clear localStorage
+            localStorage.removeItem('activeRouteState');
+          });
+        }
       }
     }
 
@@ -830,12 +902,34 @@ export default function RouteManager({
 
       {/* MAP VIEW */}
       {subTab === "map" && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fadeIn">
-          
-          {/* Controls column */}
-          <div className="lg:col-span-5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-sm flex flex-col gap-4">
-            <h3 className="text-sm font-extrabold text-[var(--text-main)] uppercase tracking-wider mb-1 flex items-center gap-2">
-              <MapPin className="text-[var(--primary)] w-4 h-4" />
+        <div className="flex flex-col gap-4 animate-fadeIn">
+          {/* Internal Map Tabs */}
+          <div className="flex bg-black/20 p-1 rounded-xl w-fit mx-auto border border-[var(--border-color)]">
+            <button
+              onClick={() => setMapTab("route")}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                mapTab === "route" ? "bg-[var(--primary)] text-white shadow-md" : "text-[var(--text-muted)] hover:text-white"
+              }`}
+            >
+              🗺️ Bản đồ & Lộ trình
+            </button>
+            <button
+              onClick={() => setMapTab("log")}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                mapTab === "log" ? "bg-[var(--primary)] text-white shadow-md" : "text-[var(--text-muted)] hover:text-white"
+              }`}
+            >
+              📖 Nhật ký di chuyển
+            </button>
+          </div>
+
+          {mapTab === "route" && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              
+              {/* Controls column */}
+              <div className="lg:col-span-5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-sm flex flex-col gap-4">
+                <h3 className="text-sm font-extrabold text-[var(--text-main)] uppercase tracking-wider mb-1 flex items-center gap-2">
+                  <MapPin className="text-[var(--primary)] w-4 h-4" />
               🚚 Thiết lập lộ trình giao sữa
             </h3>
             
@@ -987,9 +1081,47 @@ export default function RouteManager({
             <div id="route-map" className="h-[450px] w-full rounded-xl border border-[var(--border-color)] z-10"></div>
           </div>
 
+            </div>
+          )}
+
+          {mapTab === "log" && (
+            <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-sm">
+              <h3 className="text-sm font-extrabold text-[var(--text-main)] uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Clock className="text-[var(--primary)] w-4 h-4" />
+                Lịch sử di chuyển
+              </h3>
+              
+              {routeLogs.length === 0 ? (
+                <div className="text-center py-10">
+                  <p className="text-xs text-[var(--text-muted)] italic">Chưa có chuyến đi nào được lưu lại.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {routeLogs.map(log => (
+                    <div key={log.id} className="bg-black/20 border border-[var(--border-color)] rounded-xl p-4 flex flex-col gap-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs font-bold text-[var(--primary)]">{log.date}</span>
+                        <span className="text-xs font-mono text-[var(--text-muted)]">{log.startTime} - {log.endTime}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl font-extrabold text-[var(--text-main)]">{log.totalDistanceKm.toFixed(1)} km</span>
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-900/30 text-emerald-400 border border-emerald-500/20">
+                          {log.customers.length} khách hàng
+                        </span>
+                      </div>
+                      
+                      <div className="text-[11.5px] text-[var(--text-muted)] line-clamp-3 leading-relaxed">
+                        <strong className="text-[var(--text-main)]">Đã giao:</strong> {log.customers.join(", ")}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
-
       {/* SCHEDULE ADD/EDIT MODAL ... */}
       {showTrackingSummary && trackingStartTime && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-fadeIn">

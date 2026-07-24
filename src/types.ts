@@ -139,4 +139,14 @@ export interface Database {
   settings: Settings;
   tuitionRecords: Tuition[];
   activityLogs?: any[];
+  routeLogs?: RouteLog[];
+}
+
+export interface RouteLog {
+  id: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  totalDistanceKm: number;
+  customers: string[];
 }

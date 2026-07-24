@@ -293,7 +293,8 @@ const DEFAULT_DATABASE = {
       "syncedToFinance": false,
       "updatedAt": "2026-07-14T11:00:00"
     }
-  ]
+  ],
+  "routeLogs": []
 };
 
 // Database utility functions
@@ -308,6 +309,10 @@ function getDB() {
     let dirty = false;
     if (!db.tuitionRecords) {
       db.tuitionRecords = DEFAULT_DATABASE.tuitionRecords;
+      dirty = true;
+    }
+    if (!db.routeLogs) {
+      db.routeLogs = DEFAULT_DATABASE.routeLogs;
       dirty = true;
     }
     if (db.settings && !db.settings.tuitionSheetUrl) {
@@ -1267,6 +1272,36 @@ app.delete("/api/tuitions/:id", (req, res) => {
   const db = getDB();
   db.tuitionRecords = db.tuitionRecords.filter((t: any) => t.id !== req.params.id);
   saveDB(db);
+  res.json({ success: true });
+});
+
+// Route Logs
+app.get("/api/route-logs", (req, res) => {
+  res.json(getDB().routeLogs || []);
+});
+
+app.post("/api/route-logs", (req, res) => {
+  const db = getDB();
+  const newLog = {
+    id: `rl-${Date.now()}`,
+    date: req.body.date || new Date().toISOString().split("T")[0],
+    startTime: req.body.startTime || "",
+    endTime: req.body.endTime || "",
+    totalDistanceKm: Number(req.body.totalDistanceKm) || 0,
+    customers: req.body.customers || []
+  };
+  if (!db.routeLogs) db.routeLogs = [];
+  db.routeLogs.push(newLog);
+  saveDB(db);
+  res.json(newLog);
+});
+
+app.delete("/api/route-logs/:id", (req, res) => {
+  const db = getDB();
+  if (db.routeLogs) {
+    db.routeLogs = db.routeLogs.filter((l: any) => l.id !== req.params.id);
+    saveDB(db);
+  }
   res.json({ success: true });
 });
 
