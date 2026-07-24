@@ -1129,7 +1129,21 @@ export default function RouteManager({
                     <div key={log.id} className="bg-black/20 border border-[var(--border-color)] rounded-xl p-4 flex flex-col gap-2">
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-xs font-bold text-[var(--primary)]">{log.date}</span>
-                        <span className="text-xs font-mono text-[var(--text-muted)]">{log.startTime} - {log.endTime}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono text-[var(--text-muted)]">{log.startTime} - {log.endTime}</span>
+                          <button
+                            onClick={async () => {
+                              if (window.confirm("Xóa nhật ký này?")) {
+                                await apiCall(`/api/route-logs/${log.id}`, "DELETE");
+                                fetchRouteLogs();
+                              }
+                            }}
+                            className="p-1 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer"
+                            title="Xóa nhật ký này"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                       
                       <div className="flex items-center gap-2 mb-2">

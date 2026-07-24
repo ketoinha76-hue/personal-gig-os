@@ -25,7 +25,7 @@ export default function TaskBoard({
   const [activeTab, setActiveSubTab] = useState<"kanban" | "grab">("kanban");
   
   // --- Kanban States ---
-  const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
+  const [selectedProjectFilter, setSelectedProjectFilter] = useState("p-1");
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState<Task | null>(null);
   const [formData, setFormData] = useState({
@@ -264,32 +264,7 @@ export default function TaskBoard({
             </button>
           </div>
 
-          {/* Horizontal Category Filters */}
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-none">
-            <button
-              onClick={() => setSelectedProjectFilter("all")}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer ${
-                selectedProjectFilter === "all"
-                  ? "bg-[var(--primary)] text-white border-[var(--primary)]"
-                  : "bg-[var(--overlay-02)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)]"
-              }`}
-            >
-              Tất cả công việc
-            </button>
-            {projects.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => setSelectedProjectFilter(p.id)}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer whitespace-nowrap ${
-                  selectedProjectFilter === p.id
-                    ? "bg-[var(--primary)] text-white border-[var(--primary)]"
-                    : "bg-[var(--overlay-02)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)]"
-                }`}
-              >
-                {p.name}
-              </button>
-            ))}
-          </div>
+
 
           {/* Kanban Board Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">

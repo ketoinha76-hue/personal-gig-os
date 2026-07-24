@@ -668,15 +668,6 @@ export default function App() {
 
           <div className="flex items-center gap-3">
             <button
-              onClick={handleVoiceRecognition}
-              disabled={isListeningVoice}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-extrabold border border-[var(--border-color)] transition-all cursor-pointer ${
-                isListeningVoice ? "bg-rose-600/10 text-rose-500 border-rose-500/20" : "bg-[var(--overlay-03)] text-[var(--text-main)] hover:bg-[var(--overlay-06)]"
-              }`}
-            >
-              {isListeningVoice ? "🎙️ Đang nghe..." : "🎙️ Khẩu lệnh giọng nói"}
-            </button>
-            <button
               onClick={refreshAllData}
               className="flex items-center gap-2 px-4 py-2.5 bg-[var(--primary)] text-white text-xs font-extrabold rounded-xl hover:bg-[var(--primary-hover)] cursor-pointer transition-all shadow-sm"
             >
