@@ -307,73 +307,82 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
         </div>
       </div>
 
-      {/* Contacts List Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      {/* Compact Customer List */}
+      <div className="flex flex-col gap-1.5">
         {crmContacts
           .filter((c) => {
             const matchSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                                 (c.phone && c.phone.includes(searchTerm));
             const matchGroup = filterGroup === "All" || c.company === filterGroup || 
                                (filterGroup === "Nhà riêng" && c.company === "Nhà riêng") ||
-                               (filterGroup === "Đại lý" && c.company === "Đại lý"); // Using exact match to handle Yakult variations if needed
+                               (filterGroup === "Đại lý" && c.company === "Đại lý");
             return matchSearch && matchGroup;
           })
-          .map((c) => (
-          <div key={c.id} className="bg-[var(--bg-card)] border border-[var(--border-color)] p-5 rounded-2xl flex flex-col shadow-sm relative overflow-hidden">
-            <div className="flex justify-between items-start gap-2">
-              <div>
-                <span className="px-2 py-0.5 bg-[var(--overlay-03)] rounded text-[10px] font-bold text-[var(--primary)] uppercase tracking-wider">{c.company}</span>
-                <h4 className="font-bold text-sm text-[var(--text-main)] mt-2 leading-tight">{c.name}</h4>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleOpenEdit(c)}
-                  className="text-xs text-[var(--text-muted)] hover:text-[var(--primary)] cursor-pointer"
-                >
-                  ✏️
-                </button>
-                <button
-                  onClick={() => onDelete(c.id)}
-                  className="text-xs text-rose-500 hover:text-rose-700 cursor-pointer"
-                >
-                  🗑️
-                </button>
-              </div>
+          .map((c, idx) => (
+          <div key={c.id} className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl px-3 py-2.5 flex items-center gap-3 hover:border-[rgba(99,102,241,0.3)] transition-all group">
+            {/* Index */}
+            <span className="text-[10px] text-[var(--text-muted)] font-mono w-5 shrink-0 text-center">{idx + 1}</span>
+
+            {/* Name */}
+            <div className="flex-1 min-w-0">
+              <span className="text-[13px] font-bold text-[var(--text-main)] truncate block">{c.name}</span>
             </div>
 
-            <div className="text-xs text-[var(--text-muted)] flex flex-col gap-2 mt-4 leading-relaxed font-medium grow">
-              <div>📞 Số điện thoại: <strong className="text-[var(--text-main)]">{c.phone}</strong></div>
-              {c.birthYear && <div>🎂 Năm sinh: {c.birthYear}</div>}
-              {c.address && <div className="line-clamp-2">📍 Địa chỉ: {c.address}</div>}
-              {c.value > 0 && <div>💵 Trị giá: <strong className="text-emerald-500">{c.value.toLocaleString("vi-VN")} đ</strong></div>}
-            </div>
+            {/* Group badge */}
+            <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full shrink-0 border ${
+              c.company === "Khách hàng ngày chẵn" ? "bg-blue-900/20 text-blue-400 border-blue-500/20" :
+              c.company === "Khách hàng ngày lẻ" ? "bg-violet-900/20 text-violet-400 border-violet-500/20" :
+              c.company === "Nhà riêng" ? "bg-amber-900/20 text-amber-400 border-amber-500/20" :
+              c.company === "Đại lý" ? "bg-emerald-900/20 text-emerald-400 border-emerald-500/20" :
+              "bg-white/5 text-[var(--text-muted)] border-white/10"
+            } hidden sm:inline-flex`}>
+              {c.company}
+            </span>
 
-            <div className="flex gap-2 mt-5 pt-4 border-t border-[var(--border-color)]">
-              {c.locationUrl ? (
+            {/* Phone */}
+            {c.phone && (
+              <span className="text-[11px] text-[var(--text-muted)] font-mono shrink-0 hidden md:block">{c.phone}</span>
+            )}
+
+            {/* Actions */}
+            <div className="flex items-center gap-1 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity">
+              {c.locationUrl && (
                 <a
                   href={c.locationUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-grow flex items-center justify-center gap-1.5 px-3 py-2 bg-[var(--overlay-03)] border border-[var(--border-color)] text-[var(--text-main)] hover:bg-[var(--overlay-06)] text-xs font-bold rounded-xl cursor-pointer transition-all"
+                  title="Chỉ đường"
+                  className="p-1.5 rounded-lg hover:bg-blue-500/10 text-blue-400 hover:text-blue-300 transition-all cursor-pointer text-sm"
                 >
-                  🧭 Chỉ đường
+                  🧭
                 </a>
-              ) : (
-                <span className="flex-grow flex items-center justify-center text-[11px] text-amber-500 italic font-medium">Chưa ghim tọa độ</span>
               )}
               <button
-                onClick={() => {
-                  setInvoiceData({ customerName: c.name, date: new Date().toLocaleDateString("vi-VN"), value: c.value });
-                  setShowInvoiceModal(true);
-                }}
-                className="px-3 py-2 bg-[var(--overlay-03)] border border-[var(--border-color)] text-[var(--text-main)] hover:bg-[var(--overlay-06)] text-xs font-bold rounded-xl cursor-pointer transition-all"
+                onClick={() => handleOpenEdit(c)}
+                title="Sửa"
+                className="p-1.5 rounded-lg hover:bg-[var(--overlay-06)] text-[var(--text-muted)] hover:text-[var(--primary)] transition-all cursor-pointer text-sm"
               >
-                🧾 Phiếu thu
+                ✏️
+              </button>
+              <button
+                onClick={() => onDelete(c.id)}
+                title="Xóa"
+                className="p-1.5 rounded-lg hover:bg-rose-500/10 text-[var(--text-muted)] hover:text-rose-400 transition-all cursor-pointer text-sm"
+              >
+                🗑️
               </button>
             </div>
           </div>
         ))}
+        {crmContacts.filter((c) => {
+            const matchSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) || (c.phone && c.phone.includes(searchTerm));
+            const matchGroup = filterGroup === "All" || c.company === filterGroup;
+            return matchSearch && matchGroup;
+          }).length === 0 && (
+          <div className="text-center py-12 text-xs text-[var(--text-muted)] italic">Không tìm thấy khách hàng nào.</div>
+        )}
       </div>
+
 
       {/* CRM Modal */}
       {showModal && (
