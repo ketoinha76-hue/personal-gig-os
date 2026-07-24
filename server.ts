@@ -5,6 +5,7 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import { GoogleAuth } from "google-auth-library";
+import { evenDayCustomers, oddDayCustomers } from "./seed_data";
 
 const app = express();
 app.use(cors({ origin: "*" }));
@@ -1730,7 +1731,57 @@ async function startServer() {
     }
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+
+app.post("/api/sync/seed", async (req, res) => {
+  try {
+    const db = getDB();
+    if (!db.projects) db.projects = [];
+    if (!db.crm) db.crm = [];
+
+    if (!db.projects.find(p => p.id === "even_days")) {
+      db.projects.push({ id: "even_days", name: "Khách hàng ngày chẵn", budget: 0, status: "Active" });
+    }
+    if (!db.projects.find(p => p.id === "odd_days")) {
+      db.projects.push({ id: "odd_days", name: "Khách hàng ngày lẻ", budget: 0, status: "Active" });
+    }
+
+    const generateId = () => Math.random().toString(36).substring(2, 9);
+    
+    evenDayCustomers.forEach(name => {
+      if (!db.crm.find(c => c.name === name)) {
+        db.crm.push({
+          id: `c-${generateId()}`,
+          name: name,
+          company: "Khách hàng ngày chẵn",
+          phone: "",
+          address: "",
+          value: 0
+        });
+      }
+    });
+
+    oddDayCustomers.forEach(name => {
+      if (!db.crm.find(c => c.name === name)) {
+        db.crm.push({
+          id: `c-${generateId()}`,
+          name: name,
+          company: "Khách hàng ngày lẻ",
+          phone: "",
+          address: "",
+          value: 0
+        });
+      }
+    });
+
+    saveDB(db);
+    await exportToGoogleSheets();
+    res.json({ success: true, message: "Seeded customers and synced to Google Sheets" });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }

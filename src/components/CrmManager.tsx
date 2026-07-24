@@ -233,8 +233,8 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.phone) {
-      showToast("Họ tên và số điện thoại là bắt buộc.", "warning");
+    if (!formData.name) {
+      showToast("Họ tên là bắt buộc.", "warning");
       return;
     }
     const payload = {
@@ -371,10 +371,9 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
                   />
                 </div>
                 <div>
-                  <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Số điện thoại *</label>
+                  <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Số điện thoại</label>
                   <input
                     type="text"
-                    required
                     className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}

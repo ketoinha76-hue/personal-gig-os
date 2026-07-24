@@ -59,7 +59,7 @@ export interface CrmContact {
   id: string;
   name: string;
   email?: string;
-  phone: string;
+  phone?: string;
   company: string; // group
   pipelineStage?: string;
   lastContacted?: string;
