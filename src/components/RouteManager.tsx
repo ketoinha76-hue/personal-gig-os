@@ -169,7 +169,7 @@ export default function RouteManager({
 
   // Initialize Route Map automatically when map subTab is selected
   useEffect(() => {
-    if (subTab !== "map") return;
+    if (subTab !== "map" || mapTab !== "route" || !isLoaded) return;
 
     const timer = setTimeout(() => {
       const container = document.getElementById("route-map");
@@ -206,7 +206,7 @@ export default function RouteManager({
         routeMapRef.current = null;
       }
     };
-  }, [subTab]);
+  }, [subTab, mapTab, isLoaded]);
 
   const drawOptimizedMap = (depotLat: number, depotLng: number, sortedRoute: any[]) => {
     if (!routeMapRef.current) return;
