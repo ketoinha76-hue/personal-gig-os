@@ -320,6 +320,10 @@ function getDB() {
       db.settings.telegramNotificationsEnabled = true;
       dirty = true;
     }
+    if (db.settings && !db.settings.googleSpreadsheetId) {
+      db.settings.googleSpreadsheetId = DEFAULT_DATABASE.settings.googleSpreadsheetId;
+      dirty = true;
+    }
     if (db.settings && (db.settings.companyName === "Không gian làm việc của Hoàng" || !db.settings.companyName)) {
       db.settings.companyName = "Huỳnh Bá Long (Chủ sở hữu)";
       dirty = true;
