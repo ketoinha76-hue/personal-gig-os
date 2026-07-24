@@ -694,15 +694,9 @@ export default function App() {
             >
               {activeTab === "dashboard" && (
                 <Dashboard
-                  transactions={transactions}
                   tasks={tasks}
-                  savingsGoalName={settings.savingsGoalName}
-                  savingsGoalAmount={Number(settings.savingsGoalAmount) || 45000000}
-                  netProfit={netProfitVal}
-                  speakText={speakText}
-                  setShowTxModal={setShowTxModalInApp}
-                  handleSendEODReport={handleSendEODReport}
-                  handleInvoiceScan={handleInvoiceScan}
+                  crmContacts={crmContacts}
+                  routeLogs={[]}
                 />
               )}
 

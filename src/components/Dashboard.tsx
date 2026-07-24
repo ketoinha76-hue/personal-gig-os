@@ -1,139 +1,178 @@
-import React from "react";
-import { Transaction, Task } from "../types";
+import React, { useState, useEffect } from "react";
+import { Task, CrmContact, RouteLog } from "../types";
 
-interface DashboardProps {
-  transactions: Transaction[];
-  tasks: Task[];
-  savingsGoalName?: string;
-  savingsGoalAmount?: number;
-  netProfit: number;
-  speakText: (text: string) => void;
-  setShowTxModal: (show: boolean) => void;
-  handleSendEODReport: () => void;
-  handleInvoiceScan: (e: React.ChangeEvent<HTMLInputElement>) => void;
+const API_BASE = "";
+async function fetchLogs(): Promise<RouteLog[]> {
+  try {
+    const res = await fetch(`${API_BASE}/api/route-logs`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data.reverse() : [];
+  } catch { return []; }
 }
 
-export default function Dashboard({
-  transactions,
-  tasks,
-  savingsGoalName = "Mục tiêu giả định",
-  savingsGoalAmount = 50000000,
-  netProfit,
-  speakText,
-  setShowTxModal,
-  handleSendEODReport,
-  handleInvoiceScan
-}: DashboardProps) {
-  const totalIncome = transactions.filter(t => t.type === "Thu").reduce((a, b) => a + Number(b.amount), 0);
-  const totalExpense = transactions.filter(t => t.type === "Chi").reduce((a, b) => a + Number(b.amount), 0);
-  const goalProgress = Math.min(100, Math.max(0, (netProfit / (savingsGoalAmount || 1)) * 100));
+interface DashboardProps {
+  tasks: Task[];
+  crmContacts: CrmContact[];
+  routeLogs?: RouteLog[]; // kept for compat
+  transactions?: any[];
+  savingsGoalName?: string;
+  savingsGoalAmount?: number;
+  netProfit?: number;
+  speakText?: (text: string) => void;
+  setShowTxModal?: (show: boolean) => void;
+  handleSendEODReport?: () => void;
+  handleInvoiceScan?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
 
-  const todayTasks = tasks.filter(t => t.status !== "Hoàn thành");
-  const doneTasks = tasks.filter(t => t.status === "Hoàn thành");
+export default function Dashboard({ tasks, crmContacts }: DashboardProps) {
+  const [routeLogs, setRouteLogs] = useState<RouteLog[]>([]);
 
-  const fmt = (n: number) => n.toLocaleString("vi-VN") + "đ";
+  useEffect(() => {
+    fetchLogs().then(setRouteLogs);
+  }, []);
+  // ── Task stats ──────────────────────────────────────────────
+  const yakultTasks = tasks.filter(t => t.projectId === "p-1");
+  const pendingTasks = yakultTasks.filter(t => t.status !== "Hoàn thành");
+  const doneTasks = yakultTasks.filter(t => t.status === "Hoàn thành");
+  const inProgressTasks = yakultTasks.filter(t => t.status === "Đang thực hiện");
+
+  // ── Customer stats ───────────────────────────────────────────
+  const totalCustomers = crmContacts.length;
+  const evenDayCustomers = crmContacts.filter(c => c.company === "Khách hàng ngày chẵn").length;
+  const oddDayCustomers = crmContacts.filter(c => c.company === "Khách hàng ngày lẻ").length;
+  const homeCustomers = crmContacts.filter(c => c.company === "Nhà riêng").length;
+
+  // ── Route stats ──────────────────────────────────────────────
+  const totalRoutes = routeLogs.length;
+  const totalKm = routeLogs.reduce((sum, l) => sum + (l.totalDistanceKm || 0), 0);
+  const avgKm = totalRoutes > 0 ? totalKm / totalRoutes : 0;
+  const lastLog = routeLogs[0]; // already sorted newest-first
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Top Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-4 flex flex-col gap-1 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-[3px] before:bg-gradient-to-r before:from-emerald-400 before:to-teal-500">
-          <div className="text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider">💰 Tổng Thu</div>
-          <div className="text-xl font-extrabold text-emerald-400 font-mono">{fmt(totalIncome)}</div>
-        </div>
-        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-4 flex flex-col gap-1 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-[3px] before:bg-gradient-to-r before:from-rose-400 before:to-orange-500">
-          <div className="text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider">💸 Tổng Chi</div>
-          <div className="text-xl font-extrabold text-rose-400 font-mono">{fmt(totalExpense)}</div>
-        </div>
-        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-4 flex flex-col gap-1 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-[3px] before:bg-gradient-to-r before:from-amber-400 before:to-yellow-500">
-          <div className="text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider">📊 Lợi nhuận</div>
-          <div className={`text-xl font-extrabold font-mono ${netProfit >= 0 ? "text-amber-400" : "text-rose-400"}`}>{fmt(netProfit)}</div>
-        </div>
-        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-4 flex flex-col gap-1 relative overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-[3px] before:bg-gradient-to-r before:from-violet-400 before:to-purple-500">
-          <div className="text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider">✅ Hoàn thành</div>
-          <div className="text-xl font-extrabold text-violet-400 font-mono">{doneTasks.length}<span className="text-sm font-normal text-[var(--text-muted)]"> / {tasks.length}</span></div>
-        </div>
-      </div>
+      {/* ─── Row 1: 3 Summary Cards ─── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-      {/* Main Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Savings Goal Progress */}
-        <div className="lg:col-span-8 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-extrabold text-[var(--text-main)] flex items-center gap-2">
-              🎯 Mục tiêu tiết kiệm
-            </h3>
-            <span className="text-xs text-[var(--text-muted)] font-semibold">{goalProgress.toFixed(1)}%</span>
+        {/* Công việc */}
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 relative overflow-hidden shadow-sm before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-[3px] before:bg-gradient-to-r before:from-violet-500 before:to-purple-600">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">📋 Công việc Yakult</div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20">{yakultTasks.length} task</span>
           </div>
-          <div>
-            <div className="flex justify-between text-xs text-[var(--text-muted)] mb-2">
-              <span>{savingsGoalName}</span>
-              <span className="font-bold text-[var(--text-main)]">{fmt(netProfit)} / {fmt(savingsGoalAmount)}</span>
+          <div className="flex items-end gap-3 mb-4">
+            <div className="text-3xl font-extrabold text-violet-400">{pendingTasks.length}</div>
+            <div className="text-xs text-[var(--text-muted)] pb-1">việc chưa xong</div>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-black/20 rounded-lg p-2 text-center">
+              <div className="text-[11px] text-[var(--text-muted)]">Cần làm</div>
+              <div className="text-sm font-extrabold text-amber-400">{pendingTasks.filter(t => t.status === "Cần làm").length}</div>
             </div>
-            <div className="w-full h-3 bg-black/30 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-amber-400 to-emerald-500 transition-all duration-700"
-                style={{ width: `${goalProgress}%` }}
-              />
+            <div className="bg-black/20 rounded-lg p-2 text-center">
+              <div className="text-[11px] text-[var(--text-muted)]">Đang làm</div>
+              <div className="text-sm font-extrabold text-blue-400">{inProgressTasks.length}</div>
+            </div>
+            <div className="bg-black/20 rounded-lg p-2 text-center">
+              <div className="text-[11px] text-[var(--text-muted)]">Xong</div>
+              <div className="text-sm font-extrabold text-emerald-400">{doneTasks.length}</div>
             </div>
           </div>
+        </div>
 
-          {/* Công việc hôm nay */}
-          <div className="mt-1">
-            <h4 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3">📋 Công việc cần làm hôm nay</h4>
-            {todayTasks.length === 0 ? (
-              <div className="text-center py-4 text-xs text-[var(--text-muted)] italic">🎉 Không có việc gì cần làm hôm nay!</div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {todayTasks.slice(0, 5).map(t => (
-                  <div key={t.id} className="flex items-center gap-3 bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2">
-                    <span className={`w-2 h-2 shrink-0 rounded-full ${
-                      t.priority === "Cao" ? "bg-rose-500" :
-                      t.priority === "Trung bình" ? "bg-amber-500" : "bg-emerald-500"
-                    }`} />
-                    <span className="text-xs text-[var(--text-main)] font-medium flex-1 truncate">{t.title}</span>
-                    <span className="text-[10px] text-[var(--text-muted)] shrink-0 bg-black/20 px-2 py-0.5 rounded-full">{t.status}</span>
-                  </div>
-                ))}
-                {todayTasks.length > 5 && (
-                  <div className="text-[11px] text-[var(--text-muted)] text-center italic">+{todayTasks.length - 5} việc khác...</div>
-                )}
-              </div>
+        {/* Khách hàng */}
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 relative overflow-hidden shadow-sm before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-[3px] before:bg-gradient-to-r before:from-amber-400 before:to-orange-500">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">👥 Khách hàng</div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">{totalCustomers} người</span>
+          </div>
+          <div className="flex items-end gap-3 mb-4">
+            <div className="text-3xl font-extrabold text-amber-400">{totalCustomers}</div>
+            <div className="text-xs text-[var(--text-muted)] pb-1">khách hàng</div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-[var(--text-muted)]">📅 Ngày chẵn</span>
+              <span className="font-bold text-[var(--text-main)]">{evenDayCustomers} người</span>
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-[var(--text-muted)]">📅 Ngày lẻ</span>
+              <span className="font-bold text-[var(--text-main)]">{oddDayCustomers} người</span>
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-[var(--text-muted)]">🏠 Nhà riêng</span>
+              <span className="font-bold text-[var(--text-main)]">{homeCustomers} người</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Quãng đường */}
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 relative overflow-hidden shadow-sm before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-[3px] before:bg-gradient-to-r before:from-emerald-400 before:to-teal-500">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">🗺️ Lịch trình</div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">{totalRoutes} chuyến</span>
+          </div>
+          <div className="flex items-end gap-3 mb-4">
+            <div className="text-3xl font-extrabold text-emerald-400">{totalKm.toFixed(1)}</div>
+            <div className="text-xs text-[var(--text-muted)] pb-1">km tổng cộng</div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-[var(--text-muted)]">Trung bình/chuyến</span>
+              <span className="font-bold text-[var(--text-main)]">{avgKm.toFixed(1)} km</span>
+            </div>
+            {lastLog && (
+              <>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-[var(--text-muted)]">Chuyến gần nhất</span>
+                  <span className="font-bold text-[var(--text-main)]">{lastLog.date}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-[var(--text-muted)]">Quãng đường</span>
+                  <span className="font-bold text-emerald-400">{lastLog.totalDistanceKm.toFixed(1)} km</span>
+                </div>
+              </>
             )}
           </div>
         </div>
+      </div>
 
-        {/* Quick Actions Panel */}
-        <div className="lg:col-span-4 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm flex flex-col gap-3">
-          <h3 className="text-sm font-extrabold mb-1 flex items-center gap-2">
-            <span>🚀</span> Phím tắt nhanh
-          </h3>
-          <button
-            onClick={() => setShowTxModal(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[var(--primary)] text-white text-sm font-bold rounded-xl cursor-pointer hover:bg-[var(--primary-hover)] transition-all shadow-sm"
-          >
-            💵 Ghi sổ Thu/Chi
-          </button>
-          <button
-            onClick={handleSendEODReport}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[var(--overlay-03)] border border-[var(--border-color)] text-[var(--text-main)] text-sm font-bold rounded-xl cursor-pointer hover:bg-[var(--overlay-06)] transition-all"
-          >
-            🔔 Báo cáo EOD Telegram
-          </button>
-          <label className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 text-white text-sm font-bold rounded-xl cursor-pointer hover:bg-emerald-700 transition-all shadow-sm">
-            🧾 Quét hóa đơn chi phí AI
-            <input type="file" accept="image/*" className="hidden" onChange={handleInvoiceScan} />
-          </label>
-
-          {/* Online Status */}
-          <div className="mt-auto pt-3 border-t border-[var(--border-color)] flex items-center justify-between">
-            <span className="text-[11px] text-[var(--text-muted)]">Hệ thống</span>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[11px] font-bold text-emerald-400">ONLINE</span>
-            </div>
+      {/* ─── Row 2: Tasks list ─── */}
+      <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm">
+        <h3 className="text-sm font-extrabold text-[var(--text-main)] mb-4 flex items-center gap-2">
+          📋 Danh sách công việc Bán Sữa Yakult
+          <span className="text-[10px] font-semibold text-[var(--text-muted)] ml-auto">{pendingTasks.length} việc cần xử lý</span>
+        </h3>
+        {yakultTasks.length === 0 ? (
+          <div className="text-center py-6 text-xs text-[var(--text-muted)] italic">Chưa có công việc nào.</div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {yakultTasks.map(t => (
+              <div key={t.id} className={`flex items-center gap-3 rounded-xl px-4 py-3 border transition-all ${
+                t.status === "Hoàn thành"
+                  ? "bg-black/10 border-white/5 opacity-60"
+                  : "bg-black/20 border-[var(--border-color)]"
+              }`}>
+                <span className={`w-2 h-2 shrink-0 rounded-full ${
+                  t.status === "Hoàn thành" ? "bg-emerald-500" :
+                  t.status === "Đang thực hiện" ? "bg-blue-500" :
+                  t.priority === "Cao" ? "bg-rose-500" :
+                  t.priority === "Trung bình" ? "bg-amber-500" : "bg-slate-500"
+                }`} />
+                <span className={`text-[13px] font-medium flex-1 ${t.status === "Hoàn thành" ? "line-through text-[var(--text-muted)]" : "text-[var(--text-main)]"}`}>
+                  {t.title}
+                </span>
+                <span className={`text-[10px] shrink-0 font-bold px-2 py-0.5 rounded-full border ${
+                  t.status === "Hoàn thành" ? "bg-emerald-900/20 text-emerald-400 border-emerald-500/20" :
+                  t.status === "Đang thực hiện" ? "bg-blue-900/20 text-blue-400 border-blue-500/20" :
+                  "bg-amber-900/20 text-amber-400 border-amber-500/20"
+                }`}>
+                  {t.status}
+                </span>
+              </div>
+            ))}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
