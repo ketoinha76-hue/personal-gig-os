@@ -521,13 +521,13 @@ async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
   });
   
   const crmRows = [
-    ["ID", "Name", "Phone", "Email", "Company", "PipelineStage", "LastContacted", "ReminderDate", "Value", "BirthYear", "Address"]
+    ["ID", "Name", "Phone", "Email", "Company", "PipelineStage", "LastContacted", "ReminderDate", "Value", "BirthYear", "Address", "LocationUrl"]
   ];
   db.crmContacts.forEach((c: any) => {
     crmRows.push([
       c.id || "", c.name || "", c.phone || "", c.email || "", c.company || "", 
       c.pipelineStage || "", c.lastContacted || "", c.reminderDate || "", 
-      String(c.value || 0), c.birthYear || "", c.address || ""
+      String(c.value || 0), c.birthYear || "", c.address || "", c.locationUrl || ""
     ]);
   });
   
@@ -664,7 +664,8 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
         reminderDate: row[7] || "",
         value: Number(row[8]) || 0,
         birthYear: row[9] || "",
-        address: row[10] || ""
+        address: row[10] || "",
+        locationUrl: row[11] || ""
       }));
     } else if (rangeName.startsWith("Products")) {
       db.products = rows.map((row: any) => ({
