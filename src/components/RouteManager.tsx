@@ -397,9 +397,15 @@ export default function RouteManager({
         addedDist = getDistance(updated[idx-1].coords, updated[idx].coords) * 111;
       }
       
+      let fromName = "Cửa hàng (Tổng kho)";
+      if (idx > 0) {
+        fromName = updated[idx-1].name;
+      }
+      
       const timeTakenMs = now - (lastCheckTime || trackingStartTime || now);
       const newDetail = {
-        name: updated[idx].name,
+        fromName: fromName,
+        toName: updated[idx].name,
         distanceKm: addedDist,
         timeTakenMs: timeTakenMs
       };
@@ -1134,13 +1140,18 @@ export default function RouteManager({
                       </div>
                       
                       {log.details && log.details.length > 0 ? (
-                        <div className="mt-1 flex flex-col gap-1.5 max-h-[120px] overflow-y-auto custom-scrollbar pr-1">
+                        <div className="mt-1 flex flex-col gap-1.5 max-h-[160px] overflow-y-auto custom-scrollbar pr-1">
                           {log.details.map((d: any, i: number) => (
-                            <div key={i} className="flex items-center justify-between text-[11px] bg-black/20 px-2 py-1.5 rounded-lg border border-white/5">
-                              <span className="text-[var(--text-main)] font-semibold truncate max-w-[130px]" title={d.name}>{d.name}</span>
-                              <span className="text-[var(--text-muted)] font-mono shrink-0">
-                                {d.distanceKm.toFixed(1)}km <span className="mx-1 text-white/20">|</span> {Math.floor(d.timeTakenMs/60000)}p{Math.floor((d.timeTakenMs%60000)/1000)}s
-                              </span>
+                            <div key={i} className="flex flex-col text-[11px] bg-black/20 px-2 py-1.5 rounded-lg border border-white/5">
+                              <div className="flex items-center text-[var(--text-main)] mb-1">
+                                <span className="truncate max-w-[120px] text-[var(--text-muted)]">{d.fromName || "Điểm trước"}</span>
+                                <span className="mx-1 text-[var(--primary)] font-bold">→</span>
+                                <span className="font-semibold truncate max-w-[120px] text-amber-300">{d.toName || d.name}</span>
+                              </div>
+                              <div className="flex justify-between items-center text-[10px]">
+                                <span className="text-[var(--text-muted)] bg-white/5 px-1.5 py-0.5 rounded">Khỏang cách: <strong className="text-white">{d.distanceKm.toFixed(1)}km</strong></span>
+                                <span className="text-[var(--text-muted)] bg-white/5 px-1.5 py-0.5 rounded">T.gian: <strong className="text-white">{Math.floor(d.timeTakenMs/60000)}p{Math.floor((d.timeTakenMs%60000)/1000)}s</strong></span>
+                              </div>
                             </div>
                           ))}
                         </div>
