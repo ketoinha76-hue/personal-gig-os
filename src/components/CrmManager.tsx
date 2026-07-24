@@ -377,38 +377,39 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
 
       {/* CRM Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <h3 className="text-base font-extrabold text-[var(--text-main)] mb-5">
-              {editItem ? "Sửa thông tin Khách hàng" : "Thêm Khách hàng mới"}
+        <div className="fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 backdrop-blur-sm">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-t-2xl sm:rounded-2xl w-full max-w-lg px-4 pt-4 pb-6 max-h-[92vh] overflow-y-auto shadow-2xl">
+            <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-3 sm:hidden"></div>
+            <h3 className="text-sm font-extrabold text-[var(--text-main)] mb-3">
+              {editItem ? "✏️ Sửa thông tin Khách hàng" : "➕ Thêm Khách hàng mới"}
             </h3>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
               <div>
-                <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Họ và Tên *</label>
+                <label className="block text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Họ và Tên *</label>
                 <input
                   type="text"
                   required
-                  className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+                  className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-[13px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Năm sinh</label>
+                  <label className="block text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Năm sinh</label>
                   <input
                     type="text"
-                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-[13px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
                     value={formData.birthYear}
                     onChange={(e) => setFormData({ ...formData, birthYear: e.target.value })}
                   />
                 </div>
                 <div>
-                  <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Số điện thoại</label>
+                  <label className="block text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Số điện thoại</label>
                   <input
                     type="text"
-                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-[13px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   />
@@ -416,21 +417,21 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
               </div>
 
               <div>
-                <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Địa chỉ</label>
+                <label className="block text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Địa chỉ</label>
                 <input
                   type="text"
-                  className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+                  className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-[13px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 />
               </div>
 
               <div>
-                <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Google Maps URL (Tọa độ)</label>
+                <label className="block text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Google Maps URL (Tọa độ)</label>
                 <input
                   type="text"
                   placeholder="Dán link Google Maps hoặc Vĩ độ, Kinh độ"
-                  className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+                  className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-[13px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
                   value={formData.locationUrl}
                   onChange={(e) => handleLocationChange(e.target.value)}
                 />
@@ -444,15 +445,15 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
               </div>
 
               <div>
-                <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Bản đồ ghim vị trí (Kéo thả ghim ghim đúng nhà khách)</label>
-                <div id="crm-map-container" className="h-44 w-full rounded-xl border border-[var(--border-color)] z-10"></div>
+                <label className="block text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Ghim vị trí trên bản đồ</label>
+                <div id="crm-map-container" className="h-32 w-full rounded-xl border border-[var(--border-color)] z-10"></div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Nhóm khách hàng</label>
+                  <label className="block text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Nhóm khách hàng</label>
                   <select
-                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-[13px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
                     value={formData.company}
                     onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                   >
@@ -465,27 +466,27 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Giá trị giao dịch (đ)</label>
+                  <label className="block text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Giá trị giao dịch (đ)</label>
                   <input
                     type="number"
-                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-[13px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
                     value={formData.value}
                     onChange={(e) => setFormData({ ...formData, value: e.target.value })}
                   />
                 </div>
               </div>
 
-              <div className="flex gap-3 justify-end mt-4">
+              <div className="flex gap-2 justify-end mt-3">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-[var(--overlay-03)] border border-[var(--border-color)] text-[var(--text-main)] text-xs font-bold rounded-lg cursor-pointer hover:bg-[var(--overlay-06)]"
+                  className="flex-1 sm:flex-none px-4 py-2.5 bg-[var(--overlay-03)] border border-[var(--border-color)] text-[var(--text-main)] text-xs font-bold rounded-xl cursor-pointer hover:bg-[var(--overlay-06)]"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[var(--primary)] text-white text-xs font-bold rounded-lg cursor-pointer hover:bg-[var(--primary-hover)] shadow-sm"
+                  className="flex-1 sm:flex-none px-4 py-2.5 bg-[var(--primary)] text-white text-xs font-bold rounded-xl cursor-pointer hover:bg-[var(--primary-hover)] shadow-sm"
                 >
                   Lưu hồ sơ
                 </button>
