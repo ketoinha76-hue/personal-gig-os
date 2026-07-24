@@ -1736,20 +1736,18 @@ app.post("/api/sync/seed", async (req, res) => {
   try {
     const db = getDB();
     if (!db.projects) db.projects = [];
-    if (!db.crm) db.crm = [];
+    if (!db.crmContacts) db.crmContacts = [];
 
-    if (!db.projects.find(p => p.id === "even_days")) {
-      db.projects.push({ id: "even_days", name: "Khách hàng ngày chẵn", budget: 0, status: "Active" });
-    }
-    if (!db.projects.find(p => p.id === "odd_days")) {
-      db.projects.push({ id: "odd_days", name: "Khách hàng ngày lẻ", budget: 0, status: "Active" });
-    }
+    // Cleanup mistakenly added projects
+    db.projects = db.projects.filter(p => p.id !== "even_days" && p.id !== "odd_days");
+    // Cleanup mistakenly added crm array
+    if (db.crm) delete db.crm;
 
     const generateId = () => Math.random().toString(36).substring(2, 9);
     
     evenDayCustomers.forEach(name => {
-      if (!db.crm.find(c => c.name === name)) {
-        db.crm.push({
+      if (!db.crmContacts.find(c => c.name === name)) {
+        db.crmContacts.push({
           id: `c-${generateId()}`,
           name: name,
           company: "Khách hàng ngày chẵn",
@@ -1761,8 +1759,8 @@ app.post("/api/sync/seed", async (req, res) => {
     });
 
     oddDayCustomers.forEach(name => {
-      if (!db.crm.find(c => c.name === name)) {
-        db.crm.push({
+      if (!db.crmContacts.find(c => c.name === name)) {
+        db.crmContacts.push({
           id: `c-${generateId()}`,
           name: name,
           company: "Khách hàng ngày lẻ",

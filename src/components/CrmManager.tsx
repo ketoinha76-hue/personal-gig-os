@@ -426,6 +426,8 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
                     <option value="Đại lý" className="bg-slate-800 text-white">Đại lý (Yakult)</option>
                     <option value="Học viên Guitar" className="bg-slate-800 text-white">Học viên Guitar</option>
                     <option value="Khách cưới" className="bg-slate-800 text-white">Khách cưới</option>
+                    <option value="Khách hàng ngày chẵn" className="bg-slate-800 text-white">Khách hàng ngày chẵn</option>
+                    <option value="Khách hàng ngày lẻ" className="bg-slate-800 text-white">Khách hàng ngày lẻ</option>
                   </select>
                 </div>
                 <div>
