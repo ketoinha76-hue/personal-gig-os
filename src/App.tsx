@@ -37,7 +37,8 @@ export default function App() {
     geminiApiKey: "",
     savingsGoalName: "Mua máy ảnh Sony A7IV",
     savingsGoalAmount: 45000000,
-    depotCoords: "10.8087727,106.9241267"
+    depotCoords: "10.8087727,106.9241267",
+    googleSpreadsheetId: "1i7Ko3USW_UjsIeURYj9iNGcU91GYpyO9QooEdhNk8WY"
   });
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
