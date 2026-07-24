@@ -688,9 +688,38 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
     }
   });
   
-  saveDB(db);
+  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf8");
   return { success: true };
 }
+
+app.post("/api/sync/auto-pull", async (req, res) => {
+  const db = getDB();
+  const spreadsheetId = db.settings?.googleSpreadsheetId;
+  
+  if (!spreadsheetId || !process.env.GOOGLE_CREDENTIALS) {
+    return res.json({ success: true, skipped: true });
+  }
+
+  try {
+    const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+    const auth = new GoogleAuth({
+      credentials,
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"]
+    });
+    
+    const client = await auth.getClient();
+    const token = await client.getAccessToken();
+    if (!token.token) {
+      throw new Error("Failed to get access token");
+    }
+
+    await importFromGoogleSheets(token.token, spreadsheetId);
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error("Auto-pull failed:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.post("/api/sync/google-sheets", async (req, res) => {
   const { action, token, spreadsheetId } = req.body;

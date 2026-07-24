@@ -50,6 +50,7 @@ export default function App() {
   // Voice recognition states
   const [isListeningVoice, setIsListeningVoice] = useState(false);
   const [voiceCommandText, setVoiceCommandText] = useState("");
+  const [isInitialSyncing, setIsInitialSyncing] = useState(true);
 
   // Sync theme to root element
   useEffect(() => {
@@ -87,6 +88,11 @@ export default function App() {
 
     // Initial load
     const initLoad = async () => {
+      try {
+        await apiCall("/api/sync/auto-pull", "POST");
+      } catch (err) {
+        console.warn("Auto-pull skipped or failed:", err);
+      }
       await loadAllData();
       try {
         const liveSettings = await apiCall("/api/settings");
@@ -94,6 +100,7 @@ export default function App() {
       } catch (err) {
         console.error("Error loading settings:", err);
       }
+      setIsInitialSyncing(false);
     };
 
     initLoad();
@@ -619,6 +626,17 @@ export default function App() {
 
   const netProfitVal = transactions.filter(t => t.type === "Thu").reduce((a, b) => a + Number(b.amount), 0) -
                        transactions.filter(t => t.type === "Chi").reduce((a, b) => a + Number(b.amount), 0);
+
+  if (isInitialSyncing) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[var(--bg-main)]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full border-4 border-[var(--primary)] border-t-transparent animate-spin"></div>
+          <p className="text-[var(--text-muted)] font-bold text-sm tracking-wider uppercase">Đang đồng bộ dữ liệu từ Đám mây...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen">
