@@ -319,40 +319,52 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
             return matchSearch && matchGroup;
           })
           .map((c, idx) => (
-          <div key={c.id} className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl px-3 py-2.5 flex items-center gap-3 hover:border-[rgba(99,102,241,0.3)] transition-all group">
-            {/* Index */}
-            <span className="text-[10px] text-[var(--text-muted)] font-mono w-5 shrink-0 text-center">{idx + 1}</span>
-
-            {/* Name */}
-            <div className="flex-1 min-w-0">
-              <span className="text-[13px] font-bold text-[var(--text-main)] truncate block">{c.name}</span>
+          <div key={c.id} className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl px-4 py-3 flex flex-col md:flex-row md:items-center gap-3 md:gap-4 hover:border-[rgba(99,102,241,0.3)] transition-all group">
+            
+            {/* 1. STT & Name & Group (Fixed Width on Desktop) */}
+            <div className="flex items-center gap-3 md:w-[220px] shrink-0">
+              <span className="text-[10px] text-[var(--text-muted)] font-mono w-5 shrink-0 text-center">{idx + 1}</span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[13.5px] font-bold text-[var(--text-main)] truncate block leading-tight">{c.name}</span>
+                <span className={`text-[9.5px] font-bold mt-1.5 px-2 py-0.5 rounded-full border w-fit ${
+                  c.company === "Khách hàng ngày chẵn" ? "bg-blue-900/20 text-blue-400 border-blue-500/20" :
+                  c.company === "Khách hàng ngày lẻ" ? "bg-violet-900/20 text-violet-400 border-violet-500/20" :
+                  c.company === "Nhà riêng" ? "bg-amber-900/20 text-amber-400 border-amber-500/20" :
+                  c.company === "Đại lý" ? "bg-emerald-900/20 text-emerald-400 border-emerald-500/20" :
+                  "bg-white/5 text-[var(--text-muted)] border-white/10"
+                }`}>
+                  {c.company}
+                </span>
+              </div>
             </div>
 
-            {/* Group badge */}
-            <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full shrink-0 border ${
-              c.company === "Khách hàng ngày chẵn" ? "bg-blue-900/20 text-blue-400 border-blue-500/20" :
-              c.company === "Khách hàng ngày lẻ" ? "bg-violet-900/20 text-violet-400 border-violet-500/20" :
-              c.company === "Nhà riêng" ? "bg-amber-900/20 text-amber-400 border-amber-500/20" :
-              c.company === "Đại lý" ? "bg-emerald-900/20 text-emerald-400 border-emerald-500/20" :
-              "bg-white/5 text-[var(--text-muted)] border-white/10"
-            } hidden sm:inline-flex`}>
-              {c.company}
-            </span>
+            {/* 2. Details (Flexible space) */}
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 flex-1 text-[11.5px] text-[var(--text-muted)] font-medium">
+              {c.phone && <div className="flex items-center gap-1.5">📞 <span className="text-[var(--text-main)]">{c.phone}</span></div>}
+              {c.birthYear && <div className="flex items-center gap-1.5">🎂 <span>{c.birthYear}</span></div>}
+              {c.value > 0 && <div className="flex items-center gap-1.5">💵 <strong className="text-emerald-500">{c.value.toLocaleString("vi-VN")} đ</strong></div>}
+              {c.address && <div className="flex items-center gap-1.5 w-full md:w-auto md:flex-1 min-w-[150px] truncate">📍 <span className="truncate" title={c.address}>{c.address}</span></div>}
+            </div>
 
-            {/* Phone */}
-            {c.phone && (
-              <span className="text-[11px] text-[var(--text-muted)] font-mono shrink-0 hidden md:block">{c.phone}</span>
-            )}
-
-            {/* Actions */}
-            <div className="flex items-center gap-1 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity">
+            {/* 3. Actions */}
+            <div className="flex items-center gap-1.5 shrink-0 mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-[var(--border-color)] md:opacity-50 md:group-hover:opacity-100 transition-opacity justify-end">
+              <button
+                onClick={() => {
+                  setInvoiceData({ customerName: c.name, date: new Date().toLocaleDateString("vi-VN"), value: c.value });
+                  setShowInvoiceModal(true);
+                }}
+                title="Tạo phiếu thu"
+                className="flex items-center justify-center p-2 rounded-lg bg-[var(--overlay-03)] hover:bg-[var(--overlay-06)] border border-[var(--border-color)] text-[var(--text-main)] transition-all cursor-pointer text-xs"
+              >
+                🧾
+              </button>
               {c.locationUrl && (
                 <a
                   href={c.locationUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   title="Chỉ đường"
-                  className="p-1.5 rounded-lg hover:bg-blue-500/10 text-blue-400 hover:text-blue-300 transition-all cursor-pointer text-sm"
+                  className="flex items-center justify-center p-2 rounded-lg hover:bg-blue-500/10 text-blue-400 hover:text-blue-300 transition-all cursor-pointer text-xs"
                 >
                   🧭
                 </a>
@@ -360,14 +372,14 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
               <button
                 onClick={() => handleOpenEdit(c)}
                 title="Sửa"
-                className="p-1.5 rounded-lg hover:bg-[var(--overlay-06)] text-[var(--text-muted)] hover:text-[var(--primary)] transition-all cursor-pointer text-sm"
+                className="flex items-center justify-center p-2 rounded-lg hover:bg-[var(--overlay-06)] text-[var(--text-muted)] hover:text-[var(--primary)] transition-all cursor-pointer text-xs"
               >
                 ✏️
               </button>
               <button
                 onClick={() => onDelete(c.id)}
                 title="Xóa"
-                className="p-1.5 rounded-lg hover:bg-rose-500/10 text-[var(--text-muted)] hover:text-rose-400 transition-all cursor-pointer text-sm"
+                className="flex items-center justify-center p-2 rounded-lg hover:bg-rose-500/10 text-[var(--text-muted)] hover:text-rose-400 transition-all cursor-pointer text-xs"
               >
                 🗑️
               </button>
