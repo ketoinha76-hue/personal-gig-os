@@ -1143,10 +1143,15 @@ export default function RouteManager({
                         <div className="mt-1 flex flex-col gap-1.5 max-h-[160px] overflow-y-auto custom-scrollbar pr-1">
                           {log.details.map((d: any, i: number) => (
                             <div key={i} className="flex flex-col text-[11px] bg-black/20 px-2 py-1.5 rounded-lg border border-white/5">
-                              <div className="flex items-center text-[var(--text-main)] mb-1">
-                                <span className="truncate max-w-[120px] text-[var(--text-muted)]">{d.fromName || "Điểm trước"}</span>
-                                <span className="mx-1 text-[var(--primary)] font-bold">→</span>
-                                <span className="font-semibold truncate max-w-[120px] text-amber-300">{d.toName || d.name}</span>
+                              <div className="flex flex-col text-[var(--text-main)] mb-1.5 leading-relaxed gap-0.5">
+                                <span className="text-[var(--text-muted)]">
+                                  <span className="text-white/30 mr-1 text-[9px] uppercase font-bold">Từ</span>
+                                  {d.fromName || "Điểm trước"}
+                                </span>
+                                <span className="font-semibold text-amber-300">
+                                  <span className="text-white/30 mr-1 text-[9px] uppercase font-bold">Đến</span>
+                                  {d.toName || d.name}
+                                </span>
                               </div>
                               <div className="flex justify-between items-center text-[10px]">
                                 <span className="text-[var(--text-muted)] bg-white/5 px-1.5 py-0.5 rounded">Khỏang cách: <strong className="text-white">{d.distanceKm.toFixed(1)}km</strong></span>
