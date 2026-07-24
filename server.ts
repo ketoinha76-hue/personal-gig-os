@@ -3,6 +3,7 @@ import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleAuth } from "google-auth-library";
 
 const app = express();
 app.use(express.json({ limit: "50mb" }));
@@ -328,8 +329,65 @@ function getDB() {
   }
 }
 
+let syncTimeout: NodeJS.Timeout | null = null;
+
+async function autoSyncToGoogleSheets() {
+  try {
+    const db = getDB();
+    const spreadsheetId = db.settings?.googleSpreadsheetId;
+    if (!spreadsheetId) {
+      console.log("No spreadsheet ID configured, skipping auto-sync.");
+      return;
+    }
+    
+    // First try to load from ENV variable if on Render, else local file
+    let auth;
+    if (process.env.GOOGLE_CREDENTIALS) {
+       const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+       auth = new GoogleAuth({
+         credentials,
+         scopes: ["https://www.googleapis.com/auth/spreadsheets"]
+       });
+    } else {
+       // fallback to local file
+       const keyPath = path.join(process.cwd(), "google-service-account.json");
+       if (!fs.existsSync(keyPath)) {
+         console.log("Service Account credentials missing, skipping auto-sync.");
+         return;
+       }
+       auth = new GoogleAuth({
+         keyFile: keyPath,
+         scopes: ["https://www.googleapis.com/auth/spreadsheets"]
+       });
+    }
+
+    const client = await auth.getClient();
+    const token = await client.getAccessToken();
+    if (!token.token) {
+      throw new Error("Failed to get access token from GoogleAuth");
+    }
+
+    console.log("Auto-syncing to Google Sheets...");
+    await exportToGoogleSheets(token.token, spreadsheetId);
+    console.log("Auto-sync complete.");
+  } catch (err: any) {
+    console.error("Auto-sync failed:", err.message);
+  }
+}
+
+function triggerAutoSync() {
+  if (syncTimeout) {
+    clearTimeout(syncTimeout);
+  }
+  // Debounce for 10 seconds to avoid API spam
+  syncTimeout = setTimeout(() => {
+    autoSyncToGoogleSheets();
+  }, 10000);
+}
+
 function saveDB(db: any) {
   fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf8");
+  triggerAutoSync();
 }
 
 // Lazy Initialize Gemini
