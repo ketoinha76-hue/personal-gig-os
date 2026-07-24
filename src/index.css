@@ -1,0 +1,258 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Orbitron", "Plus Jakarta Sans", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+:root {
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-sidebar: #ffffff;
+  --border-color: rgba(0, 0, 0, 0.08);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-glow: rgba(79, 70, 229, 0.2);
+  --success: #059669;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --rose: #e11d48;
+  --purple: #9333ea;
+  --blue: #2563eb;
+  --emerald: #059669;
+  --overlay-01: rgba(0, 0, 0, 0.02);
+  --overlay-02: rgba(0, 0, 0, 0.04);
+  --overlay-03: rgba(0, 0, 0, 0.06);
+  --overlay-04: rgba(0, 0, 0, 0.08);
+  --overlay-06: rgba(0, 0, 0, 0.12);
+  --overlay-08: rgba(0, 0, 0, 0.16);
+}
+
+[data-theme="cyber"] {
+  --bg-main: #020308;
+  --bg-card: rgba(8, 14, 28, 0.75);
+  --bg-sidebar: #030612;
+  --border-color: rgba(0, 240, 255, 0.15);
+  --text-main: #e2f1ff;
+  --text-muted: #7fa4cd;
+  --primary: #00f0ff;
+  --primary-hover: #00cbdc;
+  --primary-glow: rgba(0, 240, 255, 0.4);
+  --success: #39ff14;
+  --warning: #ffaa00;
+  --danger: #ff003c;
+  --rose: #ff007f;
+  --purple: #bd00ff;
+  --blue: #0066ff;
+  --emerald: #39ff14;
+  --overlay-01: rgba(0, 240, 255, 0.03);
+  --overlay-02: rgba(0, 240, 255, 0.06);
+  --overlay-03: rgba(0, 240, 255, 0.09);
+  --overlay-04: rgba(0, 240, 255, 0.12);
+  --overlay-06: rgba(0, 240, 255, 0.18);
+  --overlay-08: rgba(0, 240, 255, 0.25);
+}
+
+[data-theme="dark"] {
+  --bg-main: #060913;
+  --bg-card: #0b1329;
+  --bg-sidebar: #070d1c;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --text-main: #f8fafc;
+  --text-muted: #64748b;
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --primary-glow: rgba(99, 102, 241, 0.2);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --rose: #f43f5e;
+  --purple: #a855f7;
+  --blue: #3b82f6;
+  --emerald: #10b981;
+  --overlay-01: rgba(255, 255, 255, 0.02);
+  --overlay-02: rgba(255, 255, 255, 0.04);
+  --overlay-03: rgba(255, 255, 255, 0.06);
+  --overlay-04: rgba(255, 255, 255, 0.08);
+  --overlay-06: rgba(255, 255, 255, 0.12);
+  --overlay-08: rgba(255, 255, 255, 0.16);
+}
+
+[data-theme="ocean"] {
+  --bg-main: #041421;
+  --bg-card: #0a2539;
+  --bg-sidebar: #061b2b;
+  --border-color: rgba(255, 255, 255, 0.05);
+  --text-main: #e0f2fe;
+  --text-muted: #7dd3fc;
+  --primary: #0ea5e9;
+  --primary-hover: #0284c7;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --rose: #f43f5e;
+  --purple: #a855f7;
+  --blue: #3b82f6;
+  --emerald: #10b981;
+  --overlay-01: rgba(255, 255, 255, 0.02);
+  --overlay-02: rgba(255, 255, 255, 0.04);
+  --overlay-03: rgba(255, 255, 255, 0.06);
+  --overlay-04: rgba(255, 255, 255, 0.08);
+  --overlay-06: rgba(255, 255, 255, 0.12);
+  --overlay-08: rgba(255, 255, 255, 0.16);
+}
+
+[data-theme="nature"] {
+  --bg-main: #0f1712;
+  --bg-card: #15241b;
+  --bg-sidebar: #121e16;
+  --border-color: rgba(255, 255, 255, 0.05);
+  --text-main: #ecfdf5;
+  --text-muted: #6ee7b7;
+  --primary: #10b981;
+  --primary-hover: #059669;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #ef4444;
+  --rose: #f43f5e;
+  --purple: #a855f7;
+  --blue: #3b82f6;
+  --emerald: #34d399;
+  --overlay-01: rgba(255, 255, 255, 0.02);
+  --overlay-02: rgba(255, 255, 255, 0.04);
+  --overlay-03: rgba(255, 255, 255, 0.06);
+  --overlay-04: rgba(255, 255, 255, 0.08);
+  --overlay-06: rgba(255, 255, 255, 0.12);
+  --overlay-08: rgba(255, 255, 255, 0.16);
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* SCI-FI CYBERNETIC THEME OVERRIDES */
+[data-theme="cyber"] body {
+  background-color: #010206;
+  background-image: 
+    linear-gradient(rgba(0, 240, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-attachment: fixed;
+  position: relative;
+}
+
+[data-theme="cyber"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 50% 20%, rgba(0, 102, 255, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Automatic futuristic typography mapping */
+[data-theme="cyber"] h1,
+[data-theme="cyber"] h2,
+[data-theme="cyber"] h3,
+[data-theme="cyber"] .font-extrabold,
+[data-theme="cyber"] .font-black {
+  font-family: "Orbitron", "Plus Jakarta Sans", sans-serif !important;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.25);
+}
+
+[data-theme="cyber"] .font-mono,
+[data-theme="cyber"] .font-semibold.tracking-wider,
+[data-theme="cyber"] td.font-bold {
+  font-family: "JetBrains Mono", monospace !important;
+}
+
+/* Glassmorphism cyber panels */
+[data-theme="cyber"] .bg-\[var\(--bg-card\)\] {
+  background-color: rgba(5, 10, 24, 0.75) !important;
+  border: 1px solid rgba(0, 240, 255, 0.16) !important;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(0, 240, 255, 0.05) !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="cyber"] .bg-\[var\(--bg-card\)\]:hover {
+  border-color: rgba(0, 240, 255, 0.35) !important;
+  box-shadow: 0 12px 40px rgba(0, 240, 255, 0.1), inset 0 1px 1px rgba(0, 240, 255, 0.1) !important;
+}
+
+/* Glowing cyber buttons */
+[data-theme="cyber"] .bg-\[var\(--primary\)\] {
+  background: linear-gradient(135deg, #00f0ff 0%, #0077ff 100%) !important;
+  color: #010206 !important;
+  text-shadow: none !important;
+  font-weight: 800 !important;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  transition: all 0.2s ease;
+}
+
+[data-theme="cyber"] .bg-\[var\(--primary\)\]:hover {
+  background: linear-gradient(135deg, #33f4ff 0%, #3392ff 100%) !important;
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.6) !important;
+  transform: translateY(-1px);
+}
+
+[data-theme="cyber"] select,
+[data-theme="cyber"] input[type="text"],
+[data-theme="cyber"] input[type="number"],
+[data-theme="cyber"] input[type="date"],
+[data-theme="cyber"] input[type="password"] {
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid rgba(0, 240, 255, 0.2) !important;
+  color: #e2f1ff !important;
+  font-family: "JetBrains Mono", monospace !important;
+  transition: all 0.2s ease;
+}
+
+[data-theme="cyber"] select:focus,
+[data-theme="cyber"] input:focus {
+  border-color: #00f0ff !important;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.35) !important;
+}
+
+/* Glowing Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--overlay-08);
+  border-radius: 4px;
+}
+[data-theme="cyber"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 240, 255, 0.25);
+  border: 1px solid rgba(0, 240, 255, 0.1);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Custom div icon for Leaflet */
+.custom-div-icon {
+  background: none !important;
+  border: none !important;
+}

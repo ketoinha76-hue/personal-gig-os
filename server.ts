@@ -1,0 +1,1629 @@
+import express from "express";
+import path from "path";
+import fs from "fs";
+import { createServer as createViteServer } from "vite";
+import { GoogleGenAI, Type } from "@google/genai";
+
+const app = express();
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+const PORT = process.env.PORT || 3000;
+const DB_FILE = path.join(process.cwd(), "db.json");
+const UPLOADS_DIR = path.join(process.cwd(), "uploads");
+
+// Ensure uploads directory exists
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+
+// Serve uploads as static
+app.use("/uploads", express.static(UPLOADS_DIR));
+
+// Default Seed Database from original Apps Script
+const DEFAULT_DATABASE = {
+  "users": [
+    {
+      "id": "u-1",
+      "name": "Huỳnh Bá Long",
+      "email": "ketoinha76@gmail.com",
+      "role": "Chủ sở hữu",
+      "avatar": "https://scontent.fsgn5-10.fna.fbcdn.net/v/t39.30808-1/732046181_1723277098714202_2903552125172383637_n.jpg?stp=c0.215.1364.1364a_dst-jpg_tt6&cstp=mx1364x1364&ctp=s160x160&_nc_cat=103&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=e99d92&_nc_eui2=AeHLV32Bs8CZgYo4ZRp4Be_IlQy4z9hJH2-VDLjP2Ekfb7rvURi5EPzP_Uvsxto8hzNFZzE8hKRhoo0JidXn2AIJ&_nc_ohc=-Vo0Ei0j4iMQ7kNvwGL0Q-y&_nc_oc=AdoxMKB4CgWPKlbd9rOvwpGKnOPMjJFOIynRb87Aa72LL_D6rJk4CxP4FrwfddsmNag&_nc_zt=24&_nc_ht=scontent.fsgn5-10.fna&_nc_gid=n5mvWwxSpxRghIM6-0I5yw&_nc_ss=7b2a8&oh=00_AQDZPebYzuMeFjyaIOu9PJ3EiVs02sHeotNcMpdsQ5dTyA&oe=6A5BB69D",
+      "department": "Quản lý"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t-1",
+      "title": "Giao sữa Yakult Quận 1 - Tuyến Phường Bến Nghé",
+      "description": "Giao 20 lốc Yakult cho đại lý Cafe Trung Nguyên và 15 lốc cho các hộ dân chung cư.",
+      "projectId": "p-1",
+      "priority": "Cao",
+      "status": "Cần làm",
+      "assigneeId": "u-1",
+      "reporterId": "u-1",
+      "checklist": [
+        { "id": "cl-1", "text": "Chuẩn bị đá giữ lạnh cho thùng sữa", "done": true },
+        { "id": "cl-2", "text": "Giao hàng cho đại lý Trung Nguyên và thu tiền", "done": false },
+        { "id": "cl-3", "text": "Chăm sóc và thu hồi vỏ chai nhà chị Lan", "done": false }
+      ],
+      "comments": [],
+      "tags": ["Bán sữa Yakult", "Giao hàng"],
+      "labels": ["Tuyến Q1"],
+      "estimateTime": 180,
+      "actualTime": 0,
+      "startDate": "2026-07-14",
+      "deadline": "2026-07-14",
+      "repeat": "daily",
+      "files": [],
+      "createdAt": "2026-07-14T08:00:00"
+    },
+    {
+      "id": "t-2",
+      "title": "Chụp ảnh Album Studio cô dâu Vy & chú rể Long",
+      "description": "Chụp 3 concept tại Studio (concept Hàn Quốc, concept Cổ điển và váy cưới đuôi cá). Makeup lúc 7h30, chụp lúc 9h.",
+      "projectId": "p-2",
+      "priority": "Khẩn cấp",
+      "status": "Đang thực hiện",
+      "assigneeId": "u-1",
+      "reporterId": "u-1",
+      "checklist": [
+        { "id": "cl-4", "text": "Kiểm tra pin máy ảnh, thẻ nhớ và đèn studio", "done": true },
+        { "id": "cl-5", "text": "Chụp ảnh nháp thử ánh sáng phông trắng", "done": true },
+        { "id": "cl-6", "text": "Chụp chi tiết các concept áo cưới chính", "done": false }
+      ],
+      "comments": [],
+      "tags": ["Chụp ảnh cưới", "Studio"],
+      "labels": ["Gói Premium"],
+      "estimateTime": 360,
+      "actualTime": 120,
+      "startDate": "2026-07-14",
+      "deadline": "2026-07-15",
+      "repeat": "none",
+      "files": [],
+      "createdAt": "2026-07-13T10:00:00"
+    },
+    {
+      "id": "t-3",
+      "title": "Soạn giáo án hợp âm nâng cao cho em Nam dạy đàn",
+      "description": "Biên soạn thế tay bấm Cmaj7, Am9 và bài tập đệm điệu Bossa Nova.",
+      "projectId": "p-3",
+      "priority": "Cao",
+      "status": "Cần làm",
+      "assigneeId": "u-1",
+      "reporterId": "u-1",
+      "checklist": [],
+      "comments": [],
+      "tags": ["Dạy học đàn Guitar", "Giáo án"],
+      "labels": ["Nhạc lý"],
+      "estimateTime": 60,
+      "actualTime": 0,
+      "startDate": "2026-07-14",
+      "deadline": "2026-07-15",
+      "repeat": "none",
+      "files": [],
+      "createdAt": "2026-07-14T09:00:00"
+    },
+    {
+      "id": "t-4",
+      "title": "Chạy xe Grab đón khách khung giờ vàng 17h - 20h",
+      "description": "Tập trung đón khách tại khu vực Quận 1 và Quận 3 giờ tan tầm.",
+      "projectId": "p-4",
+      "priority": "Trung bình",
+      "status": "Cần làm",
+      "assigneeId": "u-1",
+      "reporterId": "u-1",
+      "checklist": [],
+      "comments": [],
+      "tags": ["Chạy xe Grab", "Chở khách"],
+      "labels": ["Giờ vàng"],
+      "estimateTime": 180,
+      "actualTime": 0,
+      "startDate": "2026-07-14",
+      "deadline": "2026-07-14",
+      "repeat": "daily",
+      "files": [],
+      "createdAt": "2026-07-14T09:30:00"
+    }
+  ],
+  "projects": [
+    {
+      "id": "p-1",
+      "name": "Bán sữa Yakult",
+      "description": "Quản lý tuyến đường giao sữa Yakult, chăm sóc khách hàng và bán lẻ sữa uống lên men.",
+      "client": "Yakult Vietnam",
+      "members": ["u-1"],
+      "status": "Đang hoạt động",
+      "startDate": "2026-07-01",
+      "deadline": "2026-12-31",
+      "budget": 10000000,
+      "cost": 1500000,
+      "progress": 40
+    },
+    {
+      "id": "p-2",
+      "name": "Chụp ảnh cưới Wedding",
+      "description": "Cộng tác viên Wedding Studio chốt các gói chụp album cưới và sự kiện.",
+      "client": "Studio Vy Vy",
+      "members": ["u-1"],
+      "status": "Đang hoạt động",
+      "startDate": "2026-07-01",
+      "deadline": "2026-12-31",
+      "budget": 50000000,
+      "cost": 12000000,
+      "progress": 65
+    },
+    {
+      "id": "p-3",
+      "name": "Dạy học đàn Guitar",
+      "description": "Dạy kèm nhạc lý và đệm hát Guitar cơ bản/nâng cao cho học viên tại nhà.",
+      "client": "Học viên tự do",
+      "members": ["u-1"],
+      "status": "Đang hoạt động",
+      "startDate": "2026-07-01",
+      "deadline": "2026-12-31",
+      "budget": 5000000,
+      "cost": 500000,
+      "progress": 80
+    },
+    {
+      "id": "p-4",
+      "name": "Chạy xe công nghệ Grab",
+      "description": "Chạy xe máy Grab chở khách và giao hàng ngoài giờ dạy học Guitar.",
+      "client": "Grab Holdings",
+      "members": ["u-1"],
+      "status": "Đang hoạt động",
+      "startDate": "2026-07-01",
+      "deadline": "2026-12-31",
+      "budget": 2000000,
+      "cost": 200000,
+      "progress": 50
+    }
+  ],
+  "products": [
+    {
+      "id": "prod-1",
+      "sku": "YK-STD-01",
+      "name": "Yakult sữa uống lên men (Lốc 5 chai)",
+      "description": "Chứa hơn 6.5 tỉ lợi khuẩn L.casei Shirota hỗ trợ hệ tiêu hóa.",
+      "price": 24000,
+      "cost": 18000,
+      "profit": 6000,
+      "supplier": "Yakult Việt Nam",
+      "category": "Sữa Yakult",
+      "image": "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=300&fit=crop",
+      "version": "1.0.0",
+      "features": ["Hơn 6.5 tỷ lợi khuẩn Shirota", "Hỗ trợ tiêu hóa khỏe mạnh"]
+    },
+    {
+      "id": "prod-2",
+      "sku": "WD-PKG-PREMIUM",
+      "name": "Gói chụp hình cưới Premium Studio",
+      "description": "Chụp hình cưới phong cách Hàn Quốc. Gồm 01 Album 30x30, 02 ảnh cổng lớn.",
+      "price": 8500000,
+      "cost": 4500000,
+      "profit": 4000000,
+      "supplier": "Studio Wedding",
+      "category": "Gói chụp cưới",
+      "image": "https://images.unsplash.com/photo-1519741497674-611481863552?w=400&h=300&fit=crop",
+      "version": "2.0.0",
+      "features": ["01 Album 30x30 (30 trang)", "02 Ảnh cổng 60x90 ép gỗ"]
+    }
+  ],
+  "crmContacts": [
+    {
+      "id": "crm-1",
+      "name": "Chị Lan (Khách quen Yakult Q1)",
+      "email": "lan.nguyen@gmail.com",
+      "phone": "0912445566",
+      "company": "Nhà riêng",
+      "pipelineStage": "Đã chốt",
+      "lastContacted": "2026-07-10",
+      "reminderDate": "2026-07-15",
+      "value": 240000,
+      "birthYear": "1988",
+      "address": "12 Lê Thánh Tôn, Bến Nghé, Quận 1, TPHCM",
+      "locationUrl": "https://www.google.com/maps?q=10.7794,106.7028"
+    },
+    {
+      "id": "crm-2",
+      "name": "Anh Nam (Học viên Guitar nâng cao)",
+      "email": "nam.guitar@gmail.com",
+      "phone": "0988776655",
+      "company": "Học viên Guitar",
+      "pipelineStage": "Đã chốt",
+      "lastContacted": "2026-07-12",
+      "reminderDate": "2026-07-16",
+      "value": 2000000,
+      "birthYear": "2002",
+      "address": "45/3 Điện Biên Phủ, Bình Thạnh, TPHCM",
+      "locationUrl": "https://www.google.com/maps?q=10.8018,106.7119"
+    }
+  ],
+  "schedules": [],
+  "transactions": [
+    { "id": "tx-1", "projectId": "p-1", "projectName": "Bán sữa Yakult", "type": "Thu", "amount": 960000, "note": "Bán lẻ sữa Yakult tuyến Q1", "date": "2026-07-14" },
+    { "id": "tx-2", "projectId": "p-4", "projectName": "Chạy xe công nghệ Grab", "type": "Thu", "amount": 350000, "note": "Ghi nhận 5 cuốc xe sáng", "date": "2026-07-14" },
+    { "id": "tx-3", "projectId": "p-4", "projectName": "Chạy xe công nghệ Grab", "type": "Chi", "amount": 80000, "note": "Đổ xăng xe máy chạy xe", "date": "2026-07-14" }
+  ],
+  "settings": {
+    "tuitionSheetUrl": "https://docs.google.com/spreadsheets/d/16YsyE3TB_LURl4pr09qPprzfuCH78lSZ5YmoULkcF-A/edit",
+    "companyName": "Long Hub OS Pro",
+    "telegramBotToken": "8830411780:AAFaHaADFjdIm-TbPkmXko4vwNtKlTgTWhk",
+    "telegramChatId": "8915483610",
+    "telegramNotificationsEnabled": true,
+    "emailNotificationsEnabled": false,
+    "theme": "dark",
+    "language": "vi",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "geminiApiKey": "",
+    "googleCalendarId": "primary",
+    "savingsGoalName": "Mua máy ảnh Sony A7IV",
+    "savingsGoalAmount": "45000000",
+    "depotCoords": "10.8087727,106.9241267",
+    "activeRoute": []
+  },
+  "tuitionRecords": [
+    {
+      "id": "tui-1",
+      "studentName": "Nguyễn Hoài Nam",
+      "courseName": "Guitar Đệm Hát Nâng Cao",
+      "tuitionFee": 2000000,
+      "totalLessons": 10,
+      "completedLessons": 4,
+      "paymentStatus": "Đã đóng",
+      "notes": "Học viên Nam dạy đàn Guitar",
+      "syncedToFinance": true,
+      "updatedAt": "2026-07-14T10:00:00"
+    },
+    {
+      "id": "tui-2",
+      "studentName": "Lê Văn Tùng",
+      "courseName": "Guitar Solo Cơ Bản",
+      "tuitionFee": 1800000,
+      "totalLessons": 10,
+      "completedLessons": 0,
+      "paymentStatus": "Chưa đóng",
+      "notes": "Học viên mới đăng ký",
+      "syncedToFinance": false,
+      "updatedAt": "2026-07-14T11:00:00"
+    }
+  ]
+};
+
+// Database utility functions
+function getDB() {
+  if (!fs.existsSync(DB_FILE)) {
+    fs.writeFileSync(DB_FILE, JSON.stringify(DEFAULT_DATABASE, null, 2), "utf8");
+    return DEFAULT_DATABASE;
+  }
+  try {
+    const data = fs.readFileSync(DB_FILE, "utf8");
+    const db = JSON.parse(data);
+    let dirty = false;
+    if (!db.tuitionRecords) {
+      db.tuitionRecords = DEFAULT_DATABASE.tuitionRecords;
+      dirty = true;
+    }
+    if (db.settings && !db.settings.tuitionSheetUrl) {
+      db.settings.tuitionSheetUrl = DEFAULT_DATABASE.settings.tuitionSheetUrl;
+      dirty = true;
+    }
+    if (db.settings && !db.settings.telegramBotToken && DEFAULT_DATABASE.settings.telegramBotToken) {
+      db.settings.telegramBotToken = DEFAULT_DATABASE.settings.telegramBotToken;
+      db.settings.telegramChatId = DEFAULT_DATABASE.settings.telegramChatId;
+      db.settings.telegramNotificationsEnabled = true;
+      dirty = true;
+    }
+    if (db.settings && (db.settings.companyName === "Không gian làm việc của Hoàng" || !db.settings.companyName)) {
+      db.settings.companyName = "Huỳnh Bá Long (Chủ sở hữu)";
+      dirty = true;
+    }
+    if (dirty) {
+      saveDB(db);
+    }
+    return db;
+  } catch (err) {
+    return DEFAULT_DATABASE;
+  }
+}
+
+function saveDB(db: any) {
+  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf8");
+}
+
+// Lazy Initialize Gemini
+function getGeminiClient(apiKeyOverride?: string) {
+  const apiKey = apiKeyOverride || process.env.GEMINI_API_KEY || getDB().settings?.geminiApiKey;
+  if (!apiKey) {
+    throw new Error("Gemini API Key is not configured. Please add it in Cấu hình hệ thống.");
+  }
+  return new GoogleGenAI({
+    apiKey: apiKey,
+    httpOptions: {
+      headers: {
+        "User-Agent": "aistudio-build",
+      }
+    }
+  });
+}
+
+// --- API ROUTES ---
+
+// Auth APIs (Mocked/Static based on Apps Script logic)
+app.get("/api/auth/me", (req, res) => {
+  res.json({ user: getDB().users[0] });
+});
+
+app.post("/api/auth/login", (req, res) => {
+  res.json({ success: true, user: getDB().users[0] });
+});
+
+app.post("/api/auth/register", (req, res) => {
+  res.json({ success: true, user: getDB().users[0] });
+});
+
+app.post("/api/auth/logout", (req, res) => {
+  res.json({ success: true });
+});
+
+app.post("/api/auth/switch-user", (req, res) => {
+  res.json({ success: true, user: getDB().users[0] });
+});
+
+// Users
+app.get("/api/users", (req, res) => {
+  res.json(getDB().users);
+});
+
+// Settings
+app.get("/api/settings", (req, res) => {
+  res.json(getDB().settings);
+});
+
+app.put("/api/settings", (req, res) => {
+  const db = getDB();
+  db.settings = { ...db.settings, ...req.body };
+  saveDB(db);
+  res.json(db.settings);
+});
+
+// Google Sheets Sync Functions & API Endpoints
+async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
+  const db = getDB();
+  const sheetsToCreate = ["Tasks", "Schedules", "Transactions", "CRM", "Products", "Tuitions"];
+  let targetSpreadsheetId = spreadsheetId;
+  
+  if (!targetSpreadsheetId) {
+    const createRes = await fetch("https://sheets.googleapis.com/v4/spreadsheets", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        properties: {
+          title: "Personal GIG-OS Workspace - Huỳnh Bá Long DB"
+        },
+        sheets: sheetsToCreate.map(name => ({ properties: { title: name } }))
+      })
+    });
+    
+    if (!createRes.ok) {
+      const errText = await createRes.text();
+      throw new Error(`Failed to create spreadsheet: ${errText}`);
+    }
+    
+    const createData = await createRes.json() as any;
+    targetSpreadsheetId = createData.spreadsheetId;
+  }
+  
+  // 1. Prepare values for each tab
+  const taskRows = [
+    ["ID", "Title", "Description", "Priority", "Status", "ProjectId", "EstimateTime", "ActualTime", "CreatedAt"]
+  ];
+  db.tasks.forEach((t: any) => {
+    taskRows.push([
+      t.id || "", t.title || "", t.description || "", t.priority || "", 
+      t.status || "", t.projectId || "", String(t.estimateTime || 0), 
+      String(t.actualTime || 0), t.createdAt || ""
+    ]);
+  });
+  
+  const scheduleRows = [
+    ["ID", "Title", "Description", "DayOfWeek", "StartTime", "EndTime", "Color", "Completed", "Address"]
+  ];
+  db.schedules.forEach((s: any) => {
+    scheduleRows.push([
+      s.id || "", s.title || "", s.description || "", String(s.dayOfWeek || 1),
+      s.startTime || "", s.endTime || "", s.color || "", String(s.completed || false), s.address || ""
+    ]);
+  });
+  
+  const txRows = [
+    ["ID", "ProjectId", "ProjectName", "Type", "Amount", "Note", "Date"]
+  ];
+  db.transactions.forEach((tx: any) => {
+    txRows.push([
+      tx.id || "", tx.projectId || "", tx.projectName || "", tx.type || "", 
+      String(tx.amount || 0), tx.note || "", tx.date || ""
+    ]);
+  });
+  
+  const crmRows = [
+    ["ID", "Name", "Phone", "Email", "Company", "PipelineStage", "LastContacted", "ReminderDate", "Value", "BirthYear", "Address"]
+  ];
+  db.crmContacts.forEach((c: any) => {
+    crmRows.push([
+      c.id || "", c.name || "", c.phone || "", c.email || "", c.company || "", 
+      c.pipelineStage || "", c.lastContacted || "", c.reminderDate || "", 
+      String(c.value || 0), c.birthYear || "", c.address || ""
+    ]);
+  });
+  
+  const productRows = [
+    ["ID", "SKU", "Name", "Description", "Price", "Cost", "Category"]
+  ];
+  db.products.forEach((p: any) => {
+    productRows.push([
+      p.id || "", p.sku || "", p.name || "", p.description || "", 
+      String(p.price || 0), String(p.cost || 0), p.category || ""
+    ]);
+  });
+  
+  const tuitionRows = [
+    ["ID", "StudentName", "CourseName", "TuitionFee", "TotalLessons", "CompletedLessons", "PaymentStatus", "Notes", "SyncedToFinance"]
+  ];
+  if (db.tuitionRecords) {
+    db.tuitionRecords.forEach((tr: any) => {
+      tuitionRows.push([
+        tr.id || "", tr.studentName || "", tr.courseName || "", String(tr.tuitionFee || 0),
+        String(tr.totalLessons || 0), String(tr.completedLessons || 0), tr.paymentStatus || "", 
+        tr.notes || "", String(tr.syncedToFinance || false)
+      ]);
+    });
+  }
+  
+  const dataPayload = [
+    { range: "Tasks!A1", values: taskRows },
+    { range: "Schedules!A1", values: scheduleRows },
+    { range: "Transactions!A1", values: txRows },
+    { range: "CRM!A1", values: crmRows },
+    { range: "Products!A1", values: productRows },
+    { range: "Tuitions!A1", values: tuitionRows }
+  ];
+  
+  const updateRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${targetSpreadsheetId}/values:batchUpdate`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      valueInputOption: "USER_ENTERED",
+      data: dataPayload
+    })
+  });
+  
+  if (!updateRes.ok) {
+    const errText = await updateRes.text();
+    throw new Error(`Failed to update sheet rows: ${errText}`);
+  }
+  
+  db.settings.googleSpreadsheetId = targetSpreadsheetId;
+  db.settings.googleSpreadsheetUrl = `https://docs.google.com/spreadsheets/d/${targetSpreadsheetId}`;
+  saveDB(db);
+  
+  return {
+    spreadsheetId: targetSpreadsheetId,
+    spreadsheetUrl: db.settings.googleSpreadsheetUrl
+  };
+}
+
+async function importFromGoogleSheets(token: string, spreadsheetId: string) {
+  const db = getDB();
+  const ranges = ["Tasks", "Schedules", "Transactions", "CRM", "Products", "Tuitions"];
+  const queryStr = ranges.map(r => `ranges=${r}!A1:Z1000`).join("&");
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchGet?valueRenderOption=FORMATTED_VALUE&${queryStr}`;
+  
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`
+    }
+  });
+  
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Failed to fetch spreadsheet data: ${errText}`);
+  }
+  
+  const data = await res.json() as any;
+  const valueRanges = data.valueRanges || [];
+  
+  valueRanges.forEach((vr: any) => {
+    const rangeName = vr.range || "";
+    const values = vr.values || [];
+    if (values.length <= 1) return;
+    
+    const rows = values.slice(1);
+    
+    if (rangeName.startsWith("Tasks")) {
+      db.tasks = rows.map((row: any) => ({
+        id: row[0] || "",
+        title: row[1] || "",
+        description: row[2] || "",
+        priority: row[3] || "Trung bình",
+        status: row[4] || "Cần làm",
+        projectId: row[5] || "",
+        estimateTime: Number(row[6]) || 0,
+        actualTime: Number(row[7]) || 0,
+        createdAt: row[8] || new Date().toISOString()
+      }));
+    } else if (rangeName.startsWith("Schedules")) {
+      db.schedules = rows.map((row: any) => ({
+        id: row[0] || "",
+        title: row[1] || "",
+        description: row[2] || "",
+        dayOfWeek: Number(row[3]) || 1,
+        startTime: row[4] || "",
+        endTime: row[5] || "",
+        color: row[6] || "",
+        completed: row[7] === "true",
+        address: row[8] || ""
+      }));
+    } else if (rangeName.startsWith("Transactions")) {
+      db.transactions = rows.map((row: any) => ({
+        id: row[0] || "",
+        projectId: row[1] || "",
+        projectName: row[2] || "",
+        type: row[3] === "Chi" ? "Chi" : "Thu",
+        amount: Number(row[4]) || 0,
+        note: row[5] || "",
+        date: row[6] || new Date().toISOString().split("T")[0]
+      }));
+    } else if (rangeName.startsWith("CRM")) {
+      db.crmContacts = rows.map((row: any) => ({
+        id: row[0] || "",
+        name: row[1] || "",
+        phone: row[2] || "",
+        email: row[3] || "",
+        company: row[4] || "",
+        pipelineStage: row[5] || "",
+        lastContacted: row[6] || "",
+        reminderDate: row[7] || "",
+        value: Number(row[8]) || 0,
+        birthYear: row[9] || "",
+        address: row[10] || ""
+      }));
+    } else if (rangeName.startsWith("Products")) {
+      db.products = rows.map((row: any) => ({
+        id: row[0] || "",
+        sku: row[1] || "",
+        name: row[2] || "",
+        description: row[3] || "",
+        price: Number(row[4]) || 0,
+        cost: Number(row[5]) || 0,
+        category: row[6] || ""
+      }));
+    } else if (rangeName.startsWith("Tuitions")) {
+      db.tuitionRecords = rows.map((row: any) => ({
+        id: row[0] || "",
+        studentName: row[1] || "",
+        courseName: row[2] || "",
+        tuitionFee: Number(row[3]) || 0,
+        totalLessons: Number(row[4]) || 0,
+        completedLessons: Number(row[5]) || 0,
+        paymentStatus: row[6] || "Chưa đóng",
+        notes: row[7] || "",
+        syncedToFinance: row[8] === "true"
+      }));
+    }
+  });
+  
+  saveDB(db);
+  return { success: true };
+}
+
+app.post("/api/sync/google-sheets", async (req, res) => {
+  const { action, token, spreadsheetId } = req.body;
+  
+  if (!token) {
+    return res.status(400).json({ error: "Missing Google OAuth access token." });
+  }
+  
+  try {
+    if (action === "export") {
+      const result = await exportToGoogleSheets(token, spreadsheetId);
+      res.json(result);
+    } else if (action === "import") {
+      if (!spreadsheetId) {
+        return res.status(400).json({ error: "Missing spreadsheetId for import." });
+      }
+      const result = await importFromGoogleSheets(token, spreadsheetId);
+      res.json(result);
+    } else {
+      res.status(400).json({ error: "Invalid action. Choose 'export' or 'import'." });
+    }
+  } catch (err: any) {
+    console.error("Sheets sync error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Helper functions for custom guitar sheet sync
+function parseTimeTo24h(str: string): string {
+  const match = str.match(/(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)?/i);
+  if (!match) return "08:00";
+  let h = parseInt(match[1], 10);
+  const m = match[2];
+  const ampm = match[3];
+  if (ampm) {
+    if (ampm.toUpperCase() === "PM" && h < 12) {
+      h += 12;
+    } else if (ampm.toUpperCase() === "AM" && h === 12) {
+      h = 0;
+    }
+  }
+  return `${String(h).padStart(2, "0")}:${m}`;
+}
+
+function parseDateToISOString(dateStr: string): string {
+  if (!dateStr) return new Date().toISOString().split("T")[0];
+  const parts = dateStr.split(" ")[0].split("/");
+  if (parts.length === 3) {
+    const d = parts[0].padStart(2, "0");
+    const m = parts[1].padStart(2, "0");
+    const y = parts[2];
+    return `${y}-${m}-${d}`;
+  }
+  return dateStr;
+}
+
+app.post("/api/sync/custom-guitar-sheet", async (req, res) => {
+  const { token, spreadsheetId } = req.body;
+  if (!token) {
+    return res.status(400).json({ error: "Missing Google OAuth access token." });
+  }
+  const sheetId = spreadsheetId || "16YsyE3TB_LURl4pr09qPprzfuCH78lSZ5YmoULkcF-A";
+
+  try {
+    const ranges = ["DanhSachLopHoc", "LichSuHocPhi"];
+    const queryStr = ranges.map(r => `ranges=${r}!A1:Z1000`).join("&");
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values:batchGet?valueRenderOption=FORMATTED_VALUE&${queryStr}`;
+    
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Failed to fetch spreadsheet data: ${errText}`);
+    }
+    
+    const data = await response.json() as any;
+    const valueRanges = data.valueRanges || [];
+    
+    const db = getDB();
+    let tuitionImported = 0;
+    let schedulesImported = 0;
+    let incomeAdded = 0;
+
+    // First filter out old imported schedules to prevent duplication
+    db.schedules = (db.schedules || []).filter((s: any) => !s.id.startsWith("sch-class-"));
+
+    valueRanges.forEach((vr: any) => {
+      const rangeName = vr.range || "";
+      const values = vr.values || [];
+      if (values.length <= 1) return;
+      
+      const rows = values.slice(1); // skip headers
+      
+      if (rangeName.startsWith("DanhSachLopHoc")) {
+        // columns: maLop (A), tenLop (B), lichHoc (C), maGV (D)
+        rows.forEach((row: any) => {
+          const maLop = row[0] || "";
+          const tenLop = row[1] || "";
+          const lichHoc = row[2] || "";
+          const maGV = row[3] || "";
+
+          if (!lichHoc || lichHoc.trim() === "") return;
+
+          // Split by "&" or "and"
+          const parts = lichHoc.split(/&|and/i).map((p: string) => p.trim());
+          parts.forEach((part: string, index: number) => {
+            // Find day of week
+            let dayOfWeek = 0;
+            if (/Thứ\s*2|Thứ\s*hai|T2/i.test(part)) dayOfWeek = 1;
+            else if (/Thứ\s*3|Thứ\s*ba|T3/i.test(part)) dayOfWeek = 2;
+            else if (/Thứ\s*4|Thứ\s*tư|T4/i.test(part)) dayOfWeek = 3;
+            else if (/Thứ\s*5|Thứ\s*năm|T5/i.test(part)) dayOfWeek = 4;
+            else if (/Thứ\s*6|Thứ\s*sáu|T6/i.test(part)) dayOfWeek = 5;
+            else if (/Thứ\s*7|Thứ\s*bảy|T7/i.test(part)) dayOfWeek = 6;
+            else if (/Chủ\s*Nhật|Chủ\s*nhật|CN/i.test(part)) dayOfWeek = 7;
+
+            // If no day is matched but it contains "Tự do"
+            if (dayOfWeek === 0) {
+              if (/Tự\s*do|Linh\s*động/i.test(part)) {
+                dayOfWeek = 1; // default to Monday for flexible
+              } else {
+                return; // skip if cannot parse
+              }
+            }
+
+            // Extract time
+            let startTime = "08:00";
+            let endTime = "09:00";
+
+            // match inside brackets or parentheses
+            const bracketMatch = part.match(/\(([^)]+)\)/);
+            if (bracketMatch) {
+              const timeStr = bracketMatch[1].trim();
+              const times = timeStr.split("-").map((t: string) => t.trim());
+              if (times.length === 2) {
+                startTime = parseTimeTo24h(times[0]);
+                endTime = parseTimeTo24h(times[1]);
+              }
+            }
+
+            const isFlexible = /Tự\s*do|Linh\s*động/i.test(part);
+
+            const schId = `sch-class-${maLop}-${index + 1}`;
+            db.schedules.push({
+              id: schId,
+              title: `🎸 Lớp Dạy Đàn: ${tenLop}`,
+              description: `Mã lớp: ${maLop}. Giáo viên: ${maGV}.${isFlexible ? " (Thời gian tự do linh động)" : ""}`,
+              dayOfWeek,
+              startTime,
+              endTime,
+              color: "blue", // Blue stands for Guitar classes
+              completed: false,
+              address: "Tại nhà / Studio"
+            });
+            schedulesImported++;
+          });
+        });
+      } else if (rangeName.startsWith("LichSuHocPhi")) {
+        // columns: Mã HD (A), Mã HV (B), Tên HV (C), Số Tiền (D), Ngày Thu (E), Người Thu (F), Ghi Chú (G), Link File (H)
+        rows.forEach((row: any) => {
+          const maHD = row[0] || "";
+          const maHV = row[1] || "";
+          const tenHV = row[2] || "";
+          const soTienRaw = row[3] || "0";
+          const ngayThu = row[4] || "";
+          const nguoiThu = row[5] || "";
+          const ghiChu = row[6] || "";
+
+          if (!maHD) return;
+
+          const amount = Number(String(soTienRaw).replace(/[^0-9]/g, ""));
+          if (isNaN(amount) || amount <= 0) return;
+
+          const date = parseDateToISOString(ngayThu);
+
+          // Check if this transaction already exists to avoid duplicates
+          const txId = `tx-hp-${maHD}`;
+          const exists = db.transactions.some((t: any) => t.id === txId);
+          if (!exists) {
+            db.transactions.push({
+              id: txId,
+              projectId: "p-3", // Dạy học đàn Guitar
+              projectName: "Dạy học đàn Guitar",
+              type: "Thu",
+              amount,
+              note: `[Thu học phí] HV: ${tenHV} (Mã: ${maHV}) - Người thu: ${nguoiThu}. ${ghiChu}`,
+              date
+            });
+            incomeAdded += amount;
+            tuitionImported++;
+          }
+        });
+      }
+    });
+
+    saveDB(db);
+    res.json({
+      success: true,
+      message: `Đồng bộ thành công! Đã cập nhật ${schedulesImported} lịch dạy đàn. Thêm mới ${tuitionImported} giao dịch thu học phí với tổng số tiền +${incomeAdded.toLocaleString("vi-VN")}đ vào sổ sách thu chi.`,
+      schedulesCount: schedulesImported,
+      tuitionCount: tuitionImported,
+      incomeAdded
+    });
+
+  } catch (err: any) {
+    console.error("Custom sheet sync error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/auth/callback", (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Đang đồng bộ Google...</title>
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          background-color: #121214;
+          color: #e1e1e6;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+          margin: 0;
+          text-align: center;
+        }
+        .container {
+          padding: 24px;
+          border-radius: 16px;
+          background-color: #1e1e24;
+          border: 1px solid #2e2e38;
+          max-width: 400px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+        h3 { color: #10b981; margin-top: 0; font-size: 18px; }
+        .spinner {
+          border: 3px solid #2e2e38;
+          border-top: 3px solid #10b981;
+          border-radius: 50%;
+          width: 30px;
+          height: 30px;
+          animation: spin 1s linear infinite;
+          margin: 20px auto;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        p { font-size: 13px; color: #a1a1aa; line-height: 1.6; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h3>Kết Nối Google Thành Công</h3>
+        <div class="spinner"></div>
+        <p>Đang chuyển khóa xác thực và đồng bộ dữ liệu. Cửa sổ này sẽ tự động đóng trong giây lát...</p>
+      </div>
+      <script>
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const searchParams = new URLSearchParams(window.location.search);
+        const accessToken = hashParams.get("access_token") || searchParams.get("access_token");
+        
+        if (accessToken) {
+          if (window.opener) {
+            window.opener.postMessage({ type: "GOOGLE_AUTH_SUCCESS", accessToken }, "*");
+            setTimeout(() => {
+              window.close();
+            }, 1000);
+          } else {
+            document.body.innerHTML = '<div class="container" style="border-color: #f43f5e;"><h3 style="color: #f43f5e;">Lỗi liên kết</h3><p>Không tìm thấy ứng dụng chính. Vui lòng đóng cửa sổ này và thử lại từ ứng dụng.</p></div>';
+          }
+        } else {
+          document.body.innerHTML = '<div class="container" style="border-color: #eab308;"><h3 style="color: #eab308;">Thiếu quyền truy cập</h3><p>Đăng nhập Google không trả về khóa truy cập (Access Token). Vui lòng thử lại.</p></div>';
+        }
+      </script>
+    </body>
+    </html>
+  `);
+});
+
+// Tasks
+app.get("/api/tasks", (req, res) => {
+  res.json(getDB().tasks);
+});
+
+app.post("/api/tasks", (req, res) => {
+  const db = getDB();
+  const newTask = {
+    ...req.body,
+    id: `t-${Date.now()}`,
+    createdAt: new Date().toISOString()
+  };
+  db.tasks.push(newTask);
+  saveDB(db);
+  res.json(newTask);
+});
+
+app.put("/api/tasks/:id", (req, res) => {
+  const db = getDB();
+  const idx = db.tasks.findIndex((t: any) => t.id === req.params.id);
+  if (idx !== -1) {
+    db.tasks[idx] = { ...db.tasks[idx], ...req.body };
+    saveDB(db);
+    res.json(db.tasks[idx]);
+  } else {
+    res.status(404).json({ error: "Task not found" });
+  }
+});
+
+app.delete("/api/tasks/:id", (req, res) => {
+  const db = getDB();
+  db.tasks = db.tasks.filter((t: any) => t.id !== req.params.id);
+  saveDB(db);
+  res.json({ success: true });
+});
+
+// Projects
+app.get("/api/projects", (req, res) => {
+  res.json(getDB().projects);
+});
+
+app.post("/api/projects", (req, res) => {
+  const db = getDB();
+  const newProject = {
+    ...req.body,
+    id: `p-${Date.now()}`
+  };
+  db.projects.push(newProject);
+  saveDB(db);
+  res.json(newProject);
+});
+
+app.put("/api/projects/:id", (req, res) => {
+  const db = getDB();
+  const idx = db.projects.findIndex((p: any) => p.id === req.params.id);
+  if (idx !== -1) {
+    db.projects[idx] = { ...db.projects[idx], ...req.body };
+    saveDB(db);
+    res.json(db.projects[idx]);
+  } else {
+    res.status(404).json({ error: "Project not found" });
+  }
+});
+
+app.delete("/api/projects/:id", (req, res) => {
+  const db = getDB();
+  db.projects = db.projects.filter((p: any) => p.id !== req.params.id);
+  saveDB(db);
+  res.json({ success: true });
+});
+
+// Products
+app.get("/api/products", (req, res) => {
+  res.json(getDB().products);
+});
+
+app.post("/api/products", (req, res) => {
+  const db = getDB();
+  const newProduct = {
+    ...req.body,
+    id: `prod-${Date.now()}`
+  };
+  db.products.push(newProduct);
+  saveDB(db);
+  res.json(newProduct);
+});
+
+app.put("/api/products/:id", (req, res) => {
+  const db = getDB();
+  const idx = db.products.findIndex((p: any) => p.id === req.params.id);
+  if (idx !== -1) {
+    db.products[idx] = { ...db.products[idx], ...req.body };
+    saveDB(db);
+    res.json(db.products[idx]);
+  } else {
+    res.status(404).json({ error: "Product not found" });
+  }
+});
+
+app.delete("/api/products/:id", (req, res) => {
+  const db = getDB();
+  db.products = db.products.filter((p: any) => p.id !== req.params.id);
+  saveDB(db);
+  res.json({ success: true });
+});
+
+// CRM Contacts
+app.get("/api/crm", (req, res) => {
+  res.json(getDB().crmContacts);
+});
+
+app.post("/api/crm", (req, res) => {
+  const db = getDB();
+  const newContact = {
+    ...req.body,
+    id: `crm-${Date.now()}`
+  };
+  db.crmContacts.push(newContact);
+  saveDB(db);
+  res.json(newContact);
+});
+
+app.put("/api/crm/:id", (req, res) => {
+  const db = getDB();
+  const idx = db.crmContacts.findIndex((c: any) => c.id === req.params.id);
+  if (idx !== -1) {
+    db.crmContacts[idx] = { ...db.crmContacts[idx], ...req.body };
+    saveDB(db);
+    res.json(db.crmContacts[idx]);
+  } else {
+    res.status(404).json({ error: "Contact not found" });
+  }
+});
+
+app.delete("/api/crm/:id", (req, res) => {
+  const db = getDB();
+  db.crmContacts = db.crmContacts.filter((c: any) => c.id !== req.params.id);
+  saveDB(db);
+  res.json({ success: true });
+});
+
+// Schedules
+app.get("/api/schedules", (req, res) => {
+  res.json(getDB().schedules);
+});
+
+app.post("/api/schedules", (req, res) => {
+  const db = getDB();
+  const newSch = {
+    ...req.body,
+    id: `sch-${Date.now()}`,
+    completed: req.body.completed === true || req.body.completed === "true"
+  };
+  db.schedules.push(newSch);
+  saveDB(db);
+  res.json(newSch);
+});
+
+app.put("/api/schedules/:id", (req, res) => {
+  const db = getDB();
+  const idx = db.schedules.findIndex((s: any) => s.id === req.params.id);
+  if (idx !== -1) {
+    db.schedules[idx] = {
+      ...db.schedules[idx],
+      ...req.body,
+      completed: req.body.completed === true || req.body.completed === "true"
+    };
+    saveDB(db);
+    res.json(db.schedules[idx]);
+  } else {
+    res.status(404).json({ error: "Schedule not found" });
+  }
+});
+
+app.delete("/api/schedules/:id", (req, res) => {
+  const db = getDB();
+  db.schedules = db.schedules.filter((s: any) => s.id !== req.params.id);
+  saveDB(db);
+  res.json({ success: true });
+});
+
+// Transactions
+app.get("/api/transactions", (req, res) => {
+  res.json(getDB().transactions);
+});
+
+app.post("/api/transactions", (req, res) => {
+  const db = getDB();
+  const newTx = {
+    ...req.body,
+    id: `tx-${Date.now()}`
+  };
+  db.transactions.push(newTx);
+  saveDB(db);
+  res.json(newTx);
+});
+
+app.delete("/api/transactions/:id", (req, res) => {
+  const db = getDB();
+  db.transactions = db.transactions.filter((t: any) => t.id !== req.params.id);
+  saveDB(db);
+  res.json({ success: true });
+});
+
+// --- TUITION LOGS (From legacy Code.gs syncTuitionToGiaoDich) ---
+app.get("/api/tuitions", (req, res) => {
+  res.json(getDB().tuitionRecords || []);
+});
+
+app.post("/api/tuitions", (req, res) => {
+  const db = getDB();
+  const newRecord = {
+    ...req.body,
+    id: `tui-${Date.now()}`,
+    tuitionFee: Number(req.body.tuitionFee) || 0,
+    totalLessons: Number(req.body.totalLessons) || 10,
+    completedLessons: Number(req.body.completedLessons) || 0,
+    syncedToFinance: req.body.syncedToFinance === true || req.body.syncedToFinance === "true",
+    updatedAt: new Date().toISOString()
+  };
+  if (!db.tuitionRecords) db.tuitionRecords = [];
+  db.tuitionRecords.push(newRecord);
+  saveDB(db);
+  res.json(newRecord);
+});
+
+app.put("/api/tuitions/:id", (req, res) => {
+  const db = getDB();
+  const idx = db.tuitionRecords.findIndex((t: any) => t.id === req.params.id);
+  if (idx !== -1) {
+    db.tuitionRecords[idx] = {
+      ...db.tuitionRecords[idx],
+      ...req.body,
+      tuitionFee: Number(req.body.tuitionFee) !== undefined ? Number(req.body.tuitionFee) : db.tuitionRecords[idx].tuitionFee,
+      totalLessons: Number(req.body.totalLessons) !== undefined ? Number(req.body.totalLessons) : db.tuitionRecords[idx].totalLessons,
+      completedLessons: Number(req.body.completedLessons) !== undefined ? Number(req.body.completedLessons) : db.tuitionRecords[idx].completedLessons,
+      syncedToFinance: req.body.syncedToFinance !== undefined ? (req.body.syncedToFinance === true || req.body.syncedToFinance === "true") : db.tuitionRecords[idx].syncedToFinance,
+      updatedAt: new Date().toISOString()
+    };
+    saveDB(db);
+    res.json(db.tuitionRecords[idx]);
+  } else {
+    res.status(404).json({ error: "Tuition record not found" });
+  }
+});
+
+app.delete("/api/tuitions/:id", (req, res) => {
+  const db = getDB();
+  db.tuitionRecords = db.tuitionRecords.filter((t: any) => t.id !== req.params.id);
+  saveDB(db);
+  res.json({ success: true });
+});
+
+// Port of syncTuitionToGiaoDich()
+app.post("/api/tuitions/sync", (req, res) => {
+  const db = getDB();
+  const todayStr = new Date().toISOString().split("T")[0];
+  let syncCount = 0;
+  let totalAmount = 0;
+
+  if (db.tuitionRecords) {
+    db.tuitionRecords.forEach((record: any) => {
+      if (record.paymentStatus === "Đã đóng" && !record.syncedToFinance) {
+        // Create corresponding Thu transaction under Guitar project (p-3)
+        const p = db.projects.find((pr: any) => pr.id === "p-3");
+        const newTx = {
+          id: `tx-sync-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          projectId: "p-3",
+          projectName: p ? p.name : "Dạy học đàn Guitar",
+          type: "Thu" as const,
+          amount: Number(record.tuitionFee) || 0,
+          note: `Đồng bộ học phí: ${record.studentName} - ${record.courseName}`,
+          date: todayStr
+        };
+        db.transactions.push(newTx);
+        record.syncedToFinance = true;
+        syncCount++;
+        totalAmount += newTx.amount;
+      }
+    });
+  }
+
+  if (syncCount > 0) {
+    saveDB(db);
+    res.json({ success: true, message: `Đã đồng bộ thành công ${syncCount} học viên đóng học phí, tổng số tiền +${totalAmount.toLocaleString("vi-VN")} đ vào sổ sách.`, count: syncCount });
+  } else {
+    res.json({ success: true, message: "Không có học viên mới đóng học phí nào cần đồng bộ.", count: 0 });
+  }
+});
+
+// Port of autoCompletePassedSchedules()
+app.post("/api/schedules/auto-complete", (req, res) => {
+  const db = getDB();
+  const today = new Date();
+  let currentDayOfWeek = today.getDay();
+  if (currentDayOfWeek === 0) currentDayOfWeek = 7; // Sunday is 7 in our dayOfWeek mapping
+
+  const currentHour = today.getHours();
+  const currentMinute = today.getMinutes();
+  let updatedCount = 0;
+
+  if (db.schedules) {
+    db.schedules.forEach((s: any) => {
+      if (s.completed) return;
+
+      let shouldComplete = false;
+      if (s.dayOfWeek < currentDayOfWeek) {
+        shouldComplete = true;
+      } else if (s.dayOfWeek === currentDayOfWeek) {
+        if (s.endTime) {
+          const [endH, endM] = s.endTime.split(":").map(Number);
+          if (endH < currentHour || (endH === currentHour && endM <= currentMinute)) {
+            shouldComplete = true;
+          }
+        }
+      }
+
+      if (shouldComplete) {
+        s.completed = true;
+        updatedCount++;
+      }
+    });
+  }
+
+  if (updatedCount > 0) {
+    saveDB(db);
+    res.json({ success: true, message: `Đã tự động đánh dấu hoàn thành ${updatedCount} lịch hẹn/lộ trình quá hạn trong tuần.`, count: updatedCount });
+  } else {
+    res.json({ success: true, message: "Tất cả các lịch hẹn đều chưa quá hạn hoặc đã được hoàn tất.", count: 0 });
+  }
+});
+
+// Port of saveGrabSession()
+app.post("/api/grab/save-session", (req, res) => {
+  const { odoStart, odoEnd, fuelCost, revenue, date } = req.body;
+  
+  const startNum = Number(odoStart);
+  const endNum = Number(odoEnd);
+  const fuelNum = Number(fuelCost) || 0;
+  const revNum = Number(revenue) || 0;
+  const txDate = date || new Date().toISOString().split("T")[0];
+
+  const distance = endNum - startNum;
+  if (distance <= 0) {
+    return res.status(400).json({ error: "Số công-tơ-mét kết thúc phải lớn hơn số lúc xuất phát." });
+  }
+
+  const db = getDB();
+  const p = db.projects.find((pr: any) => pr.id === "p-4"); // Grab project
+  const projName = p ? p.name : "Chạy xe công nghệ Grab";
+
+  const transactionsAdded = [];
+
+  // Add revenue (Thu) if greater than 0
+  if (revNum > 0) {
+    const revTx = {
+      id: `tx-grab-rev-${Date.now()}`,
+      projectId: "p-4",
+      projectName: projName,
+      type: "Thu" as const,
+      amount: revNum,
+      note: `Doanh thu ca chạy Grab ngày ${txDate} (${distance}km)`,
+      date: txDate
+    };
+    db.transactions.push(revTx);
+    transactionsAdded.push(revTx);
+  }
+
+  // Add fuel cost (Chi) if greater than 0
+  if (fuelNum > 0) {
+    const fuelTx = {
+      id: `tx-grab-fuel-${Date.now()}`,
+      projectId: "p-4",
+      projectName: projName,
+      type: "Chi" as const,
+      amount: fuelNum,
+      note: `Chi phí xăng xe ca chạy Grab ngày ${txDate} (${distance}km)`,
+      date: txDate
+    };
+    db.transactions.push(fuelTx);
+    transactionsAdded.push(fuelTx);
+  }
+
+  if (transactionsAdded.length > 0) {
+    saveDB(db);
+    res.json({
+      success: true,
+      message: `Đã lưu thành công ca chạy xe Grab (${distance} km): Ghi nhận +${revNum.toLocaleString("vi-VN")} đ doanh thu và -${fuelNum.toLocaleString("vi-VN")} đ tiền xăng đổ xe vào sổ sách thu chi.`,
+      distance
+    });
+  } else {
+    res.status(400).json({ error: "Vui lòng nhập doanh thu hoặc chi phí xăng xe để lưu ca chạy." });
+  }
+});
+
+// Real upload files
+app.post("/api/upload", (req, res) => {
+  try {
+    const { name, type, data } = req.body;
+    if (!name || !data) {
+      return res.status(400).json({ error: "Missing file name or data" });
+    }
+    const filename = `${Date.now()}_${name}`;
+    const filePath = path.join(UPLOADS_DIR, filename);
+    const buffer = Buffer.from(data, "base64");
+    fs.writeFileSync(filePath, buffer);
+    const url = `/uploads/${filename}`;
+    res.json({ success: true, url });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// AI Assistant Endpoint
+app.post("/api/ai/assistant", async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    const ai = getGeminiClient();
+    const response = await ai.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: prompt,
+    });
+    res.json({ response: response.text });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// AI Receipt Scanning via Gemini OCR Multimodal
+app.post("/api/ai/receipt", async (req, res) => {
+  try {
+    const { data, type } = req.body;
+    if (!data || !type) {
+      return res.status(400).json({ error: "Missing image base64 data or content type." });
+    }
+    const ai = getGeminiClient();
+    const prompt = `Hãy quét ảnh hóa đơn này. Nhận diện các thông tin chi phí và trả về duy nhất một chuỗi JSON hợp lệ (không markdown code blocks) như sau:
+{
+  "amount": số tiền hóa đơn (số nguyên),
+  "vendor": "tên cửa hàng/nhà cung cấp",
+  "date": "ngày hóa đơn dạng YYYY-MM-DD",
+  "note": "tóm tắt ngắn gọn những gì đã mua",
+  "projectId": "p-1"|"p-2"|"p-3"|"p-4" // phân loại thông minh: p-1 (Bán sữa Yakult), p-2 (Chụp ảnh cưới Wedding), p-3 (Dạy học đàn Guitar), p-4 (Chạy xe công nghệ Grab)
+}`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: [
+        prompt,
+        {
+          inlineData: {
+            mimeType: type,
+            data: data
+          }
+        }
+      ],
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            amount: { type: Type.INTEGER },
+            vendor: { type: Type.STRING },
+            date: { type: Type.STRING },
+            note: { type: Type.STRING },
+            projectId: { type: Type.STRING }
+          },
+          required: ["amount", "vendor", "date", "note", "projectId"]
+        }
+      }
+    });
+
+    const resultText = response.text || "{}";
+    const parsedTx = JSON.parse(resultText.trim());
+
+    const db = getDB();
+    const p = db.projects.find((pr: any) => pr.id === parsedTx.projectId);
+    const newTx = {
+      id: `tx-${Date.now()}`,
+      projectId: parsedTx.projectId,
+      projectName: p ? p.name : "Khác",
+      type: "Chi",
+      amount: Number(parsedTx.amount) || 0,
+      note: `${parsedTx.vendor} - ${parsedTx.note}`,
+      date: parsedTx.date || new Date().toISOString().split("T")[0]
+    };
+
+    db.transactions.push(newTx);
+    saveDB(db);
+
+    res.json({ success: true, transaction: newTx });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Voice command handler
+app.post("/api/voice-command", async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) {
+      return res.status(400).json({ error: "Missing command text" });
+    }
+    const ai = getGeminiClient();
+    const systemPrompt = `Bạn là trợ lý điều khiển giọng nói cho hệ điều hành cá nhân. Tin nhắn giọng nói nhận được: "${text}"
+Trả về chuỗi JSON duy nhất đại diện cho hành động cần làm:
+{
+  "action": "add_transaction" | "add_task" | "complete_task" | "unrecognized",
+  "data": {
+     // Cho add_transaction: { "type": "Thu"|"Chi", "amount": số, "note": "ghi chú", "projectId": "p-1"|"p-2"|"p-3"|"p-4" }
+     // Cho add_task: { "title": "tên việc", "description": "mô tả", "projectId": "p-1"|"p-2"|"p-3"|"p-4" }
+     // Cho complete_task: { "query": "tên việc" }
+  }
+}
+Lưu ý các dự án: p-1 (Bán sữa Yakult), p-2 (Chụp ảnh cưới Wedding), p-3 (Dạy học đàn Guitar), p-4 (Chạy xe công nghệ Grab). Hãy suy luận thông minh, ví dụ 'giao sữa' -> p-1, 'chụp ảnh/áo cưới/album' -> p-2, 'dạy học/guitar/hợp âm' -> p-3, 'chạy Grab/đổ xăng xe' -> p-4. Hãy trả về JSON thô sạch.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: systemPrompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            action: { type: Type.STRING },
+            data: {
+              type: Type.OBJECT,
+              properties: {
+                type: { type: Type.STRING },
+                amount: { type: Type.NUMBER },
+                note: { type: Type.STRING },
+                projectId: { type: Type.STRING },
+                title: { type: Type.STRING },
+                description: { type: Type.STRING },
+                query: { type: Type.STRING }
+              }
+            }
+          },
+          required: ["action", "data"]
+        }
+      }
+    });
+
+    const json = JSON.parse(response.text || "{}");
+    const db = getDB();
+
+    if (json.action === "add_transaction") {
+      const p = db.projects.find((pr: any) => pr.id === json.data.projectId);
+      const created = {
+        id: `tx-${Date.now()}`,
+        projectId: json.data.projectId,
+        projectName: p ? p.name : "Khác",
+        type: json.data.type || "Chi",
+        amount: Number(json.data.amount) || 0,
+        note: json.data.note || "Giao dịch tự động qua giọng nói",
+        date: new Date().toISOString().split("T")[0]
+      };
+      db.transactions.push(created);
+      saveDB(db);
+      return res.json({
+        success: true,
+        message: `Đã thêm giao dịch: ${created.type === "Thu" ? "Thu nhập" : "Chi phí"} ${created.amount.toLocaleString("vi-VN")} đ cho ${created.projectName}`
+      });
+    } else if (json.action === "add_task") {
+      const created = {
+        id: `t-${Date.now()}`,
+        title: json.data.title,
+        description: json.data.description || "",
+        projectId: json.data.projectId || "p-1",
+        status: "Cần làm",
+        priority: "Trung bình",
+        createdAt: new Date().toISOString()
+      };
+      db.tasks.push(created);
+      saveDB(db);
+      return res.json({
+        success: true,
+        message: `Đã thêm công việc mới: ${created.title}`
+      });
+    } else if (json.action === "complete_task") {
+      const query = (json.data.query || "").toLowerCase();
+      const matchIdx = db.tasks.findIndex((t: any) => t.title.toLowerCase().includes(query) && t.status !== "Hoàn thành");
+      if (matchIdx !== -1) {
+        db.tasks[matchIdx].status = "Hoàn thành";
+        saveDB(db);
+        return res.json({
+          success: true,
+          message: `Đã đánh dấu hoàn thành: ${db.tasks[matchIdx].title}`
+        });
+      }
+      return res.json({
+        success: false,
+        error: `Không tìm thấy công việc dở dang nào chứa từ khóa "${json.data.query}"`
+      });
+    }
+
+    res.json({ success: false, error: "Không nhận dạng được hành động điều khiển." });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Telegram APIs
+app.post("/api/telegram/test", async (req, res) => {
+  try {
+    const { token, chatId } = getDB().settings;
+    if (!token || !chatId) {
+      return res.status(400).json({ error: "Token hoặc Chat ID chưa được cấu hình." });
+    }
+    const text = "🔔 <b>Thử nghiệm kết nối Telegram:</b> Cấu hình ID và Token của bạn hoạt động chính xác!";
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: "HTML" })
+    });
+    const result = await response.json();
+    res.json({ success: response.ok, response: result });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/telegram/eod-report", async (req, res) => {
+  try {
+    const db = getDB();
+    const { token, chatId } = db.settings;
+    if (!token || !chatId) {
+      return res.status(400).json({ error: "Token hoặc Chat ID chưa được cấu hình." });
+    }
+
+    const tasks = db.tasks;
+    const todayStr = new Date().toLocaleDateString("vi-VN");
+    const doneTasks: string[] = [];
+    const activeTasks: string[] = [];
+
+    tasks.forEach((t: any) => {
+      if (t.status === "Hoàn thành") doneTasks.push(t.title);
+      else activeTasks.push(`${t.title} [${t.status}]`);
+    });
+
+    let msg = `<b>📊 BÁO CÁO CÔNG VIỆC CUỐI NGÀY</b>\n` +
+              `<i>Ngày: ${todayStr}</i>\n\n` +
+              `<b>✅ Việc Đã Làm Được:</b>\n`;
+
+    if (doneTasks.length > 0) {
+      doneTasks.forEach((title, idx) => { msg += `${idx + 1}. ${title}\n`; });
+    } else {
+      msg += `- Không có công việc nào hoàn thành hôm nay.\n`;
+    }
+
+    msg += `\n<b>❌ Việc Chưa Làm Được:</b>\n`;
+    if (activeTasks.length > 0) {
+      activeTasks.forEach((title, idx) => { msg += `${idx + 1}. ${title}\n`; });
+    } else {
+      msg += `- Tất cả công việc hôm nay đã được hoàn thành.\n`;
+    }
+
+    msg += `\nChúc bạn buổi tối vui vẻ!`;
+
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: "HTML" })
+    });
+    const result = await response.json();
+    res.json({ success: response.ok, response: result });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/settings/telegram-webhook", (req, res) => {
+  // Telegram 2-way Webhook Setup Mock / Sync response
+  res.json({ success: true, message: "Đã giả lập kết nối webhook hai chiều thành công." });
+});
+
+// Export Database
+app.get("/api/db/export", (req, res) => {
+  res.json(getDB());
+});
+
+// Import Database
+app.post("/api/db/import", (req, res) => {
+  try {
+    saveDB(req.body);
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Vite Middleware for Development / Production Static Server Setup
+async function startServer() {
+  if (process.env.NODE_ENV !== "production") {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "spa",
+    });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(process.cwd(), "dist");
+    app.use(express.static(distPath));
+    app.get("*", (req, res) => {
+      res.sendFile(path.join(distPath, "index.html"));
+    });
+  }
+
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+startServer();

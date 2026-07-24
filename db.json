@@ -1,0 +1,369 @@
+{
+  "users": [
+    {
+      "id": "u-1",
+      "name": "Huỳnh Bá Long",
+      "email": "ketoinha76@gmail.com",
+      "role": "Chủ sở hữu",
+      "avatar": "https://scontent.fsgn5-10.fna.fbcdn.net/v/t39.30808-1/732046181_1723277098714202_2903552125172383637_n.jpg?stp=c0.215.1364.1364a_dst-jpg_tt6&cstp=mx1364x1364&ctp=s160x160&_nc_cat=103&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=e99d92&_nc_eui2=AeHLV32Bs8CZgYo4ZRp4Be_IlQy4z9hJH2-VDLjP2Ekfb7rvURi5EPzP_Uvsxto8hzNFZzE8hKRhoo0JidXn2AIJ&_nc_ohc=-Vo0Ei0j4iMQ7kNvwGL0Q-y&_nc_oc=AdoxMKB4CgWPKlbd9rOvwpGKnOPMjJFOIynRb87Aa72LL_D6rJk4CxP4FrwfddsmNag&_nc_zt=24&_nc_ht=scontent.fsgn5-10.fna&_nc_gid=n5mvWwxSpxRghIM6-0I5yw&_nc_ss=7b2a8&oh=00_AQDZPebYzuMeFjyaIOu9PJ3EiVs02sHeotNcMpdsQ5dTyA&oe=6A5BB69D",
+      "department": "Quản lý"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t-1",
+      "title": "Giao sữa Yakult Quận 1 - Tuyến Phường Bến Nghé",
+      "description": "Giao 20 lốc Yakult cho đại lý Cafe Trung Nguyên và 15 lốc cho các hộ dân chung cư.",
+      "projectId": "p-1",
+      "priority": "Cao",
+      "status": "Cần làm",
+      "assigneeId": "u-1",
+      "reporterId": "u-1",
+      "checklist": [
+        {
+          "id": "cl-1",
+          "text": "Chuẩn bị đá giữ lạnh cho thùng sữa",
+          "done": true
+        },
+        {
+          "id": "cl-2",
+          "text": "Giao hàng cho đại lý Trung Nguyên và thu tiền",
+          "done": false
+        },
+        {
+          "id": "cl-3",
+          "text": "Chăm sóc và thu hồi vỏ chai nhà chị Lan",
+          "done": false
+        }
+      ],
+      "comments": [],
+      "tags": [
+        "Bán sữa Yakult",
+        "Giao hàng"
+      ],
+      "labels": [
+        "Tuyến Q1"
+      ],
+      "estimateTime": 180,
+      "actualTime": 0,
+      "startDate": "2026-07-14",
+      "deadline": "2026-07-14",
+      "repeat": "daily",
+      "files": [],
+      "createdAt": "2026-07-14T08:00:00"
+    },
+    {
+      "id": "t-2",
+      "title": "Chụp ảnh Album Studio cô dâu Vy & chú rể Long",
+      "description": "Chụp 3 concept tại Studio (concept Hàn Quốc, concept Cổ điển và váy cưới đuôi cá). Makeup lúc 7h30, chụp lúc 9h.",
+      "projectId": "p-2",
+      "priority": "Khẩn cấp",
+      "status": "Đang thực hiện",
+      "assigneeId": "u-1",
+      "reporterId": "u-1",
+      "checklist": [
+        {
+          "id": "cl-4",
+          "text": "Kiểm tra pin máy ảnh, thẻ nhớ và đèn studio",
+          "done": true
+        },
+        {
+          "id": "cl-5",
+          "text": "Chụp ảnh nháp thử ánh sáng phông trắng",
+          "done": true
+        },
+        {
+          "id": "cl-6",
+          "text": "Chụp chi tiết các concept áo cưới chính",
+          "done": false
+        }
+      ],
+      "comments": [],
+      "tags": [
+        "Chụp ảnh cưới",
+        "Studio"
+      ],
+      "labels": [
+        "Gói Premium"
+      ],
+      "estimateTime": 360,
+      "actualTime": 120,
+      "startDate": "2026-07-14",
+      "deadline": "2026-07-15",
+      "repeat": "none",
+      "files": [],
+      "createdAt": "2026-07-13T10:00:00"
+    },
+    {
+      "id": "t-3",
+      "title": "Soạn giáo án hợp âm nâng cao cho em Nam dạy đàn",
+      "description": "Biên soạn thế tay bấm Cmaj7, Am9 và bài tập đệm điệu Bossa Nova.",
+      "projectId": "p-3",
+      "priority": "Cao",
+      "status": "Cần làm",
+      "assigneeId": "u-1",
+      "reporterId": "u-1",
+      "checklist": [],
+      "comments": [],
+      "tags": [
+        "Dạy học đàn Guitar",
+        "Giáo án"
+      ],
+      "labels": [
+        "Nhạc lý"
+      ],
+      "estimateTime": 60,
+      "actualTime": 0,
+      "startDate": "2026-07-14",
+      "deadline": "2026-07-15",
+      "repeat": "none",
+      "files": [],
+      "createdAt": "2026-07-14T09:00:00"
+    },
+    {
+      "id": "t-4",
+      "title": "Chạy xe Grab đón khách khung giờ vàng 17h - 20h",
+      "description": "Tập trung đón khách tại khu vực Quận 1 và Quận 3 giờ tan tầm.",
+      "projectId": "p-4",
+      "priority": "Trung bình",
+      "status": "Cần làm",
+      "assigneeId": "u-1",
+      "reporterId": "u-1",
+      "checklist": [],
+      "comments": [],
+      "tags": [
+        "Chạy xe Grab",
+        "Chở khách"
+      ],
+      "labels": [
+        "Giờ vàng"
+      ],
+      "estimateTime": 180,
+      "actualTime": 0,
+      "startDate": "2026-07-14",
+      "deadline": "2026-07-14",
+      "repeat": "daily",
+      "files": [],
+      "createdAt": "2026-07-14T09:30:00"
+    }
+  ],
+  "projects": [
+    {
+      "id": "p-1",
+      "name": "Bán sữa Yakult",
+      "description": "Quản lý tuyến đường giao sữa Yakult, chăm sóc khách hàng và bán lẻ sữa uống lên men.",
+      "client": "Yakult Vietnam",
+      "members": [
+        "u-1"
+      ],
+      "status": "Đang hoạt động",
+      "startDate": "2026-07-01",
+      "deadline": "2026-12-31",
+      "budget": 10000000,
+      "cost": 1500000,
+      "progress": 40
+    },
+    {
+      "id": "p-2",
+      "name": "Chụp ảnh cưới Wedding",
+      "description": "Cộng tác viên Wedding Studio chốt các gói chụp album cưới và sự kiện.",
+      "client": "Studio Vy Vy",
+      "members": [
+        "u-1"
+      ],
+      "status": "Đang hoạt động",
+      "startDate": "2026-07-01",
+      "deadline": "2026-12-31",
+      "budget": 50000000,
+      "cost": 12000000,
+      "progress": 65
+    },
+    {
+      "id": "p-3",
+      "name": "Dạy học đàn Guitar",
+      "description": "Dạy kèm nhạc lý và đệm hát Guitar cơ bản/nâng cao cho học viên tại nhà.",
+      "client": "Học viên tự do",
+      "members": [
+        "u-1"
+      ],
+      "status": "Đang hoạt động",
+      "startDate": "2026-07-01",
+      "deadline": "2026-12-31",
+      "budget": 5000000,
+      "cost": 500000,
+      "progress": 80
+    },
+    {
+      "id": "p-4",
+      "name": "Chạy xe công nghệ Grab",
+      "description": "Chạy xe máy Grab chở khách và giao hàng ngoài giờ dạy học Guitar.",
+      "client": "Grab Holdings",
+      "members": [
+        "u-1"
+      ],
+      "status": "Đang hoạt động",
+      "startDate": "2026-07-01",
+      "deadline": "2026-12-31",
+      "budget": 2000000,
+      "cost": 200000,
+      "progress": 50
+    }
+  ],
+  "products": [
+    {
+      "id": "prod-1",
+      "sku": "YK-STD-01",
+      "name": "Yakult sữa uống lên men (Lốc 5 chai)",
+      "description": "Chứa hơn 6.5 tỉ lợi khuẩn L.casei Shirota hỗ trợ hệ tiêu hóa.",
+      "price": 24000,
+      "cost": 18000,
+      "profit": 6000,
+      "supplier": "Yakult Việt Nam",
+      "category": "Sữa Yakult",
+      "image": "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=300&fit=crop",
+      "version": "1.0.0",
+      "features": [
+        "Hơn 6.5 tỷ lợi khuẩn Shirota",
+        "Hỗ trợ tiêu hóa khỏe mạnh"
+      ]
+    },
+    {
+      "id": "prod-2",
+      "sku": "WD-PKG-PREMIUM",
+      "name": "Gói chụp hình cưới Premium Studio",
+      "description": "Chụp hình cưới phong cách Hàn Quốc. Gồm 01 Album 30x30, 02 ảnh cổng lớn.",
+      "price": 8500000,
+      "cost": 4500000,
+      "profit": 4000000,
+      "supplier": "Studio Wedding",
+      "category": "Gói chụp cưới",
+      "image": "https://images.unsplash.com/photo-1519741497674-611481863552?w=400&h=300&fit=crop",
+      "version": "2.0.0",
+      "features": [
+        "01 Album 30x30 (30 trang)",
+        "02 Ảnh cổng 60x90 ép gỗ"
+      ]
+    }
+  ],
+  "crmContacts": [
+    {
+      "id": "crm-1",
+      "name": "Chị Lan (Khách quen Yakult Q1)",
+      "email": "lan.nguyen@gmail.com",
+      "phone": "0912445566",
+      "company": "Nhà riêng",
+      "pipelineStage": "Đã chốt",
+      "lastContacted": "2026-07-10",
+      "reminderDate": "2026-07-15",
+      "value": 240000,
+      "birthYear": "1988",
+      "address": "12 Lê Thánh Tôn, Bến Nghé, Quận 1, TPHCM",
+      "locationUrl": "https://www.google.com/maps?q=10.7794,106.7028"
+    },
+    {
+      "id": "crm-2",
+      "name": "Anh Nam (Học viên Guitar nâng cao)",
+      "email": "nam.guitar@gmail.com",
+      "phone": "0988776655",
+      "company": "Học viên Guitar",
+      "pipelineStage": "Đã chốt",
+      "lastContacted": "2026-07-12",
+      "reminderDate": "2026-07-16",
+      "value": 2000000,
+      "birthYear": "2002",
+      "address": "45/3 Điện Biên Phủ, Bình Thạnh, TPHCM",
+      "locationUrl": "https://www.google.com/maps?q=10.8018,106.7119"
+    }
+  ],
+  "schedules": [],
+  "transactions": [
+    {
+      "id": "tx-1",
+      "projectId": "p-1",
+      "projectName": "Bán sữa Yakult",
+      "type": "Thu",
+      "amount": 960000,
+      "note": "Bán lẻ sữa Yakult tuyến Q1",
+      "date": "2026-07-14"
+    },
+    {
+      "id": "tx-2",
+      "projectId": "p-4",
+      "projectName": "Chạy xe công nghệ Grab",
+      "type": "Thu",
+      "amount": 350000,
+      "note": "Ghi nhận 5 cuốc xe sáng",
+      "date": "2026-07-14"
+    },
+    {
+      "id": "tx-3",
+      "projectId": "p-4",
+      "projectName": "Chạy xe công nghệ Grab",
+      "type": "Chi",
+      "amount": 80000,
+      "note": "Đổ xăng xe máy chạy xe",
+      "date": "2026-07-14"
+    },
+    {
+      "id": "tx-grab-rev-1784451559784",
+      "projectId": "p-4",
+      "projectName": "Chạy xe công nghệ Grab",
+      "type": "Thu",
+      "amount": 500000,
+      "note": "Doanh thu ca chạy Grab ngày 2026-07-19 (100km)",
+      "date": "2026-07-19"
+    },
+    {
+      "id": "tx-grab-fuel-1784451559784",
+      "projectId": "p-4",
+      "projectName": "Chạy xe công nghệ Grab",
+      "type": "Chi",
+      "amount": 50000,
+      "note": "Chi phí xăng xe ca chạy Grab ngày 2026-07-19 (100km)",
+      "date": "2026-07-19"
+    }
+  ],
+  "settings": {
+    "companyName": "Huỳnh Bá Long",
+    "telegramBotToken": "8830411780:AAFaHaADFjdIm-TbPkmXko4vwNtKlTgTWhk",
+    "telegramChatId": "8915483610",
+    "telegramNotificationsEnabled": true,
+    "emailNotificationsEnabled": false,
+    "theme": "dark",
+    "language": "vi",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "geminiApiKey": "",
+    "googleCalendarId": "primary",
+    "savingsGoalName": "Mua máy ảnh Sony A7IV",
+    "savingsGoalAmount": "45000000",
+    "depotCoords": "10.8087727,106.9241267",
+    "activeRoute": [],
+    "tuitionSheetUrl": "https://docs.google.com/spreadsheets/d/1gYKf688PGl7K_hGEU1al0oGmgSdmTMBORBeNAi_xJBo/edit"
+  },
+  "tuitionRecords": [
+    {
+      "id": "tui-1",
+      "studentName": "Nguyễn Hoài Nam",
+      "courseName": "Guitar Đệm Hát Nâng Cao",
+      "tuitionFee": 2000000,
+      "totalLessons": 10,
+      "completedLessons": 4,
+      "paymentStatus": "Đã đóng",
+      "notes": "Học viên Nam dạy đàn Guitar",
+      "syncedToFinance": true,
+      "updatedAt": "2026-07-14T10:00:00"
+    },
+    {
+      "id": "tui-2",
+      "studentName": "Lê Văn Tùng",
+      "courseName": "Guitar Solo Cơ Bản",
+      "tuitionFee": 1800000,
+      "totalLessons": 10,
+      "completedLessons": 0,
+      "paymentStatus": "Chưa đóng",
+      "notes": "Học viên mới đăng ký",
+      "syncedToFinance": false,
+      "updatedAt": "2026-07-14T11:00:00"
+    }
+  ]
+}

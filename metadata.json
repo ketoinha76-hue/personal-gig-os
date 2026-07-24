@@ -1,0 +1,6 @@
+{
+  "name": "Personal Gig-OS",
+  "description": "Hệ điều hành cá nhân hỗ trợ quản lý công việc, tài chính, hồ sơ khách hàng, lộ trình di chuyển tối ưu và trợ lý ảo thông minh.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
