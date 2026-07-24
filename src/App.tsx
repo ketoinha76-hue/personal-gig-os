@@ -114,9 +114,15 @@ export default function App() {
 
   // Standard fetch wrapper with automatic offline queueing
   const apiCall = async (url: string, method = "GET", body: any = null) => {
+    // Determine the base URL: Use Render URL if running inside Capacitor (where location.hostname is localhost)
+    const baseUrl = window.location.hostname === "localhost" && (window as any).Capacitor 
+      ? "https://personal-igjw.onrender.com" 
+      : "";
+    const fullUrl = url.startsWith("http") ? url : `${baseUrl}${url}`;
+
     if (!navigator.onLine && method !== "GET") {
       const queue = JSON.parse(localStorage.getItem("offline_sync_queue") || "[]");
-      queue.push({ url, method, body, id: Date.now() });
+      queue.push({ url: fullUrl, method, body, id: Date.now() });
       localStorage.setItem("offline_sync_queue", JSON.stringify(queue));
       showToast("Đã lưu tác vụ ngoại tuyến. Sẽ tự động đồng bộ khi có mạng.", "warning");
       return { success: true, offline: true };
@@ -130,7 +136,7 @@ export default function App() {
       options.body = JSON.stringify(body);
     }
 
-    const response = await fetch(url, options);
+    const response = await fetch(fullUrl, options);
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
       throw new Error(errData.error || "Giao tiếp máy chủ thất bại.");

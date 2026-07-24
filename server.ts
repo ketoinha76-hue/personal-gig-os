@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
@@ -6,6 +7,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { GoogleAuth } from "google-auth-library";
 
 const app = express();
+app.use(cors({ origin: "*" }));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
