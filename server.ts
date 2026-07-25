@@ -1041,7 +1041,7 @@ app.post("/api/tasks", (req, res) => {
 
 app.put("/api/tasks/:id", (req, res) => {
   const db = getDB();
-  const idx = db.tasks.findIndex((t: any) => t.id === req.params.id);
+  const idx = db.tasks.findIndex((t: any) => String(t.id) === String(req.params.id));
   if (idx !== -1) {
     db.tasks[idx] = { ...db.tasks[idx], ...req.body };
     saveDB(db);
@@ -1053,7 +1053,7 @@ app.put("/api/tasks/:id", (req, res) => {
 
 app.delete("/api/tasks/:id", (req, res) => {
   const db = getDB();
-  db.tasks = db.tasks.filter((t: any) => t.id !== req.params.id);
+  db.tasks = db.tasks.filter((t: any) => String(t.id) !== String(req.params.id));
   saveDB(db);
   res.json({ success: true });
 });
@@ -1076,7 +1076,7 @@ app.post("/api/projects", (req, res) => {
 
 app.put("/api/projects/:id", (req, res) => {
   const db = getDB();
-  const idx = db.projects.findIndex((p: any) => p.id === req.params.id);
+  const idx = db.projects.findIndex((p: any) => String(p.id) === String(req.params.id));
   if (idx !== -1) {
     db.projects[idx] = { ...db.projects[idx], ...req.body };
     saveDB(db);
@@ -1088,7 +1088,7 @@ app.put("/api/projects/:id", (req, res) => {
 
 app.delete("/api/projects/:id", (req, res) => {
   const db = getDB();
-  db.projects = db.projects.filter((p: any) => p.id !== req.params.id);
+  db.projects = db.projects.filter((p: any) => String(p.id) !== String(req.params.id));
   saveDB(db);
   res.json({ success: true });
 });
@@ -1111,7 +1111,7 @@ app.post("/api/products", (req, res) => {
 
 app.put("/api/products/:id", (req, res) => {
   const db = getDB();
-  const idx = db.products.findIndex((p: any) => p.id === req.params.id);
+  const idx = db.products.findIndex((p: any) => String(p.id) === String(req.params.id));
   if (idx !== -1) {
     db.products[idx] = { ...db.products[idx], ...req.body };
     saveDB(db);
@@ -1123,7 +1123,7 @@ app.put("/api/products/:id", (req, res) => {
 
 app.delete("/api/products/:id", (req, res) => {
   const db = getDB();
-  db.products = db.products.filter((p: any) => p.id !== req.params.id);
+  db.products = db.products.filter((p: any) => String(p.id) !== String(req.params.id));
   saveDB(db);
   res.json({ success: true });
 });
@@ -1146,7 +1146,7 @@ app.post("/api/crm", (req, res) => {
 
 app.put("/api/crm/:id", (req, res) => {
   const db = getDB();
-  const idx = db.crmContacts.findIndex((c: any) => c.id === req.params.id);
+  const idx = db.crmContacts.findIndex((c: any) => String(c.id) === String(req.params.id));
   if (idx !== -1) {
     db.crmContacts[idx] = { ...db.crmContacts[idx], ...req.body };
     saveDB(db);
@@ -1158,7 +1158,7 @@ app.put("/api/crm/:id", (req, res) => {
 
 app.delete("/api/crm/:id", (req, res) => {
   const db = getDB();
-  db.crmContacts = db.crmContacts.filter((c: any) => c.id !== req.params.id);
+  db.crmContacts = db.crmContacts.filter((c: any) => String(c.id) !== String(req.params.id));
   saveDB(db);
   res.json({ success: true });
 });
@@ -1182,7 +1182,7 @@ app.post("/api/schedules", (req, res) => {
 
 app.put("/api/schedules/:id", (req, res) => {
   const db = getDB();
-  const idx = db.schedules.findIndex((s: any) => s.id === req.params.id);
+  const idx = db.schedules.findIndex((s: any) => String(s.id) === String(req.params.id));
   if (idx !== -1) {
     db.schedules[idx] = {
       ...db.schedules[idx],
@@ -1198,7 +1198,7 @@ app.put("/api/schedules/:id", (req, res) => {
 
 app.delete("/api/schedules/:id", (req, res) => {
   const db = getDB();
-  db.schedules = db.schedules.filter((s: any) => s.id !== req.params.id);
+  db.schedules = db.schedules.filter((s: any) => String(s.id) !== String(req.params.id));
   saveDB(db);
   res.json({ success: true });
 });
@@ -1221,7 +1221,7 @@ app.post("/api/transactions", (req, res) => {
 
 app.delete("/api/transactions/:id", (req, res) => {
   const db = getDB();
-  db.transactions = db.transactions.filter((t: any) => t.id !== req.params.id);
+  db.transactions = db.transactions.filter((t: any) => String(t.id) !== String(req.params.id));
   saveDB(db);
   res.json({ success: true });
 });
@@ -1250,7 +1250,7 @@ app.post("/api/tuitions", (req, res) => {
 
 app.put("/api/tuitions/:id", (req, res) => {
   const db = getDB();
-  const idx = db.tuitionRecords.findIndex((t: any) => t.id === req.params.id);
+  const idx = db.tuitionRecords.findIndex((t: any) => String(t.id) === String(req.params.id));
   if (idx !== -1) {
     db.tuitionRecords[idx] = {
       ...db.tuitionRecords[idx],
@@ -1270,7 +1270,7 @@ app.put("/api/tuitions/:id", (req, res) => {
 
 app.delete("/api/tuitions/:id", (req, res) => {
   const db = getDB();
-  db.tuitionRecords = db.tuitionRecords.filter((t: any) => t.id !== req.params.id);
+  db.tuitionRecords = db.tuitionRecords.filter((t: any) => String(t.id) !== String(req.params.id));
   saveDB(db);
   res.json({ success: true });
 });
@@ -1300,7 +1300,7 @@ app.post("/api/route-logs", (req, res) => {
 app.delete("/api/route-logs/:id", (req, res) => {
   const db = getDB();
   if (db.routeLogs) {
-    db.routeLogs = db.routeLogs.filter((l: any) => l.id !== req.params.id);
+    db.routeLogs = db.routeLogs.filter((l: any) => String(l.id) !== String(req.params.id));
     saveDB(db);
   }
   res.json({ success: true });
