@@ -707,17 +707,18 @@ export default function RouteManager({
   const getColorClasses = (color: string) => {
     switch (color) {
       case "purple":
-        return "bg-purple-950/40 text-purple-300 border-purple-500/30 hover:bg-purple-950/60";
+        return "bg-[var(--purple)]/15 text-[var(--purple)] border-[var(--purple)]/30 hover:bg-[var(--purple)]/25";
       case "rose":
-        return "bg-rose-950/40 text-rose-300 border-rose-500/30 hover:bg-rose-950/60";
+        return "bg-[var(--rose)]/15 text-[var(--rose)] border-[var(--rose)]/30 hover:bg-[var(--rose)]/25";
       case "blue":
-        return "bg-blue-950/40 text-blue-300 border-blue-500/30 hover:bg-blue-950/60";
+        return "bg-[var(--blue)]/15 text-[var(--blue)] border-[var(--blue)]/30 hover:bg-[var(--blue)]/25";
       case "emerald":
-        return "bg-emerald-950/40 text-emerald-300 border-emerald-500/30 hover:bg-emerald-950/60";
+        return "bg-[var(--emerald)]/15 text-[var(--emerald)] border-[var(--emerald)]/30 hover:bg-[var(--emerald)]/25";
       case "amber":
-        return "bg-amber-950/40 text-amber-300 border-amber-500/30 hover:bg-amber-950/60";
+      case "warning":
+        return "bg-[var(--warning)]/15 text-[var(--warning)] border-[var(--warning)]/30 hover:bg-[var(--warning)]/25";
       default:
-        return "bg-slate-900/50 text-slate-300 border-slate-600/30 hover:bg-slate-900/80";
+        return "bg-[var(--text-muted)]/15 text-[var(--text-main)] border-[var(--text-muted)]/30 hover:bg-[var(--text-muted)]/25";
     }
   };
 
@@ -1011,25 +1012,29 @@ export default function RouteManager({
               <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm">
                 <h4 className="text-[11.5px] font-black text-[var(--text-muted)] uppercase tracking-wider mb-3">🎨 Phân loại màu sắc công việc</h4>
                 <div className="grid grid-cols-2 gap-2.5 text-[11px]">
-                  <div className="flex items-center gap-2 p-1.5 rounded-lg bg-purple-950/20 border border-purple-500/10">
-                    <span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
-                    <span className="text-purple-300 font-bold">Sữa Yakult</span>
+                  <div className="flex items-center gap-2 p-1.5 rounded-lg bg-[var(--purple)]/10 border border-[var(--purple)]/20">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--purple)]"></span>
+                    <span className="text-[var(--purple)] font-bold">Sữa Yakult</span>
                   </div>
-                  <div className="flex items-center gap-2 p-1.5 rounded-lg bg-rose-950/20 border border-rose-500/10">
-                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-                    <span className="text-rose-300 font-bold">Studio Vy Vy</span>
+                  <div className="flex items-center gap-2 p-1.5 rounded-lg bg-[var(--rose)]/10 border border-[var(--rose)]/20">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--rose)]"></span>
+                    <span className="text-[var(--rose)] font-bold">Studio Vy Vy</span>
                   </div>
-                  <div className="flex items-center gap-2 p-1.5 rounded-lg bg-blue-950/20 border border-blue-500/10">
-                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                    <span className="text-blue-300 font-bold">Guitar Đàn</span>
+                  <div className="flex items-center gap-2 p-1.5 rounded-lg bg-[var(--blue)]/10 border border-[var(--blue)]/20">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--blue)]"></span>
+                    <span className="text-[var(--blue)] font-bold">Guitar Đàn</span>
                   </div>
-                  <div className="flex items-center gap-2 p-1.5 rounded-lg bg-emerald-950/20 border border-emerald-500/10">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                    <span className="text-emerald-300 font-bold">Chạy xe Grab</span>
+                  <div className="flex items-center gap-2 p-1.5 rounded-lg bg-[var(--warning)]/10 border border-[var(--warning)]/20">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--warning)]"></span>
+                    <span className="text-[var(--warning)] font-bold">Kế toán</span>
                   </div>
-                  <div className="flex items-center gap-2 p-1.5 rounded-lg bg-amber-950/20 border border-amber-500/10 col-span-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                    <span className="text-amber-300 font-bold">Khác / Tổng quát</span>
+                  <div className="flex items-center gap-2 p-1.5 rounded-lg bg-[var(--emerald)]/10 border border-[var(--emerald)]/20">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--emerald)]"></span>
+                    <span className="text-[var(--emerald)] font-bold">Chạy xe Grab</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-1.5 rounded-lg bg-[var(--text-muted)]/10 border border-[var(--text-muted)]/20">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--text-muted)]"></span>
+                    <span className="text-[var(--text-main)] font-bold">Khác / Tổng quát</span>
                   </div>
                 </div>
               </div>
