@@ -832,14 +832,14 @@ export default function RouteManager({
               <div className="overflow-x-auto rounded-xl border border-[var(--border-color)] max-h-[580px] overflow-y-auto custom-scrollbar bg-black/10">
                 <table className="w-full min-w-[1000px] border-collapse text-left">
                   <thead>
-                    <tr className="border-b border-[var(--border-color)] bg-black/40 text-[11px] font-bold text-[var(--text-main)] uppercase tracking-wider sticky top-0 z-20">
-                      <th className="p-3 w-16 text-center border-r border-[var(--border-color)]">Giờ</th>
+                    <tr className="border-b border-[var(--border-color)] bg-black/40 text-[11px] font-bold text-[var(--text-main)] uppercase tracking-wider sticky top-0 z-30">
+                      <th className="p-3 w-16 text-center border-r border-[var(--border-color)] sticky left-0 z-40 bg-[var(--bg-card)]">Giờ</th>
                       {weekdays.map((day) => {
                         const isToday = day.value === currentDayOfWeek;
                         return (
                           <th 
                             key={day.value} 
-                            className={`p-3 border-r border-[var(--border-color)] text-center ${
+                            className={`p-3 border-r border-[var(--border-color)] text-center min-w-[110px] ${
                               isToday ? "bg-[var(--primary)]/20 text-white border-b-2 border-b-[var(--primary)] font-black" : ""
                             }`}
                           >
@@ -858,7 +858,7 @@ export default function RouteManager({
                       return (
                         <tr key={hour} className="border-b border-[var(--border-color)]/50 hover:bg-white/[0.01]">
                           {/* Hour label */}
-                          <td className="p-2 text-center font-mono text-[11px] font-extrabold text-[var(--text-muted)] bg-black/20 border-r border-[var(--border-color)] sticky left-0 z-10 w-16">
+                          <td className="p-2 text-center font-mono text-[11px] font-extrabold text-[var(--text-muted)] bg-[var(--bg-card)] border-r border-[var(--border-color)] sticky left-0 z-20 w-16">
                             {hourStr}
                           </td>
                           {/* Weekdays columns */}

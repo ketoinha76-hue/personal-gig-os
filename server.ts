@@ -382,17 +382,24 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
     const rows = values.slice(1);
     
     if (rangeName.startsWith("schedules") || rangeName.startsWith("công việc")) {
-      db.schedules = rows.map((row: any, i: number) => ({
-        id: row[0] || `sch-imported-${Date.now()}-${i}`,
-        title: row[1] || "",
-        description: row[2] || "",
-        dayOfWeek: Number(row[3]) || 1,
-        startTime: row[4] || "",
-        endTime: row[5] || "",
-        color: row[6] || "",
-        completed: row[7] === "true",
-        address: row[8] || ""
-      }));
+      db.schedules = rows.map((row: any, i: number) => {
+        let st = row[4] || "";
+        let et = row[5] || "";
+        if (!/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(st)) st = "08:00";
+        if (!/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(et)) et = "09:00";
+        
+        return {
+          id: row[0] || `sch-imported-${Date.now()}-${i}`,
+          title: row[1] || "",
+          description: row[2] || "",
+          dayOfWeek: Number(row[3]) || 1,
+          startTime: st,
+          endTime: et,
+          color: row[6] || "",
+          completed: row[7] === "true",
+          address: row[8] || ""
+        };
+      });
     } else if (rangeName.startsWith("crm") || rangeName.startsWith("khách hàng")) {
       const imported = rows.map((row: any, i: number) => ({
         id: row[0] || `crm-imported-${Date.now()}-${i}`,
