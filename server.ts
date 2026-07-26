@@ -114,45 +114,46 @@ let syncTimeout: NodeJS.Timeout | null = null;
 async function autoSyncToGoogleSheets() {
   try {
     const db = getDB();
-    const spreadsheetId = db.settings?.googleSpreadsheetId;
-    if (!spreadsheetId) {
-      console.log("No spreadsheet ID configured, skipping auto-sync.");
-      return;
+    const bridgeUrl = db.settings?.gasBridgeUrl || "https://script.google.com/macros/s/AKfycbyhXyY5a5uSSMsIBVamFQlJksf-jBHGz-LefbmVVukAiXaqbVJTigEqdexwE5laWRmW/exec";
+    
+    console.log("Auto-syncing to Google Sheets via GAS Bridge...");
+    
+    const res = await fetch(bridgeUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      // GAS needs plain text or json payload, e.postData.contents will have it
+      body: JSON.stringify({
+        action: "sync",
+        db: db
+      })
+    });
+    
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Bridge sync failed: ${errText}`);
     }
     
-    // First try to load from ENV variable if on Render, else local file
-    let auth;
-    if (process.env.GOOGLE_CREDENTIALS) {
-       const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
-       auth = new GoogleAuth({
-         credentials,
-         scopes: ["https://www.googleapis.com/auth/spreadsheets"]
-       });
-    } else {
-       // fallback to local file
-       const keyPath = path.join(process.cwd(), "google-service-account.json");
-       if (!fs.existsSync(keyPath)) {
-         console.log("Service Account credentials missing, skipping auto-sync.");
-         return;
-       }
-       auth = new GoogleAuth({
-         keyFile: keyPath,
-         scopes: ["https://www.googleapis.com/auth/spreadsheets"]
-       });
+    // Attempt to parse response (some GAS errors return HTML, but we expect JSON on success)
+    const text = await res.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch(e) {
+      throw new Error(`Invalid JSON response from bridge: ${text.substring(0, 50)}...`);
+    }
+    
+    if (data.error) {
+      throw new Error(data.error);
     }
 
-    const client = await auth.getClient();
-    const token = await client.getAccessToken();
-    if (!token.token) {
-      throw new Error("Failed to get access token from GoogleAuth");
-    }
-
-    console.log("Auto-syncing to Google Sheets...");
-    await exportToGoogleSheets(token.token, spreadsheetId);
     console.log("Auto-sync complete.");
     db.settings.lastSyncStatus = "Success";
     db.settings.lastSyncTime = new Date().toISOString();
     db.settings.lastSyncError = "";
+    
+    // Save status silently without triggering another sync loop
     fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf8");
   } catch (err: any) {
     console.error("Auto-sync failed:", err.message);
