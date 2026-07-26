@@ -114,23 +114,6 @@ export default function RouteManager({
 
   // --- Real-time GPS & Compass Tracking ---
   useEffect(() => {
-    if (!isGpsActive) {
-      if (watchIdRef.current !== null) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
-        watchIdRef.current = null;
-      }
-      const L = (window as any).L;
-      window.removeEventListener("deviceorientation", handleOrientation as EventListener);
-      if (userMarkerRef.current && routeMapRef.current && L) {
-        routeMapRef.current.removeLayer(userMarkerRef.current);
-        userMarkerRef.current = null;
-      }
-      return;
-    }
-
-    const L = (window as any).L;
-    if (!L) return;
-
     const handleOrientation = (e: any) => {
       let compassHeading = 0;
       if (e.webkitCompassHeading) {
@@ -148,6 +131,22 @@ export default function RouteManager({
         }
       }
     };
+
+    if (!isGpsActive) {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+      const L = (window as any).L;
+      if (userMarkerRef.current && routeMapRef.current && L) {
+        routeMapRef.current.removeLayer(userMarkerRef.current);
+        userMarkerRef.current = null;
+      }
+      return;
+    }
+
+    const L = (window as any).L;
+    if (!L) return;
 
     window.addEventListener("deviceorientation", handleOrientation as EventListener, true);
 

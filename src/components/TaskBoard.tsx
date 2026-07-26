@@ -6,7 +6,7 @@ interface TaskBoardProps {
   crmContacts?: any[];
   onSave: (task: any) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
-  onUpdateStatus: (id: string, status: string) => Promise<void>;
+  onUpdateStatus?: (id: string, status: string) => Promise<void>;
   showToast: (msg: string, type?: "success" | "danger" | "warning" | "info") => void;
   apiCall?: (url: string, method?: string, body?: any) => Promise<any>;
   refreshData?: () => Promise<void>;
@@ -206,7 +206,7 @@ export default function TaskBoard({
       setIsSyncing(true);
       showToast("Đang đồng bộ dữ liệu vào Sổ sách Thu Chi...", "info");
 
-      const proj = projects.find(p => p.id === "p-4") || { name: "Chạy xe công nghệ Grab" };
+      const proj = { name: "Chạy xe công nghệ Grab" };
 
       // 1. Sync Gross Revenue
       if (results.revenue > 0) {
