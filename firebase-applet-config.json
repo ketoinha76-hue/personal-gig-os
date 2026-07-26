@@ -1,1 +1,11 @@
-{ apiKey: AIzaSyCqAO9XrQA4mZTSz6KVc-yq13bwQwA5GwQ, authDomain: lienketdatavsapp.firebaseapp.com, projectId: lienketdatavsapp, storageBucket: lienketdatavsapp.firebasestorage.app, messagingSenderId: 948696433097, appId: 1:948696433097:web:216c7e3eab1331940fe818, measurementId: G-HJ6Y7J3LQK }
+{
+  "apiKey": "AIzaSyCqAO9XrQA4mZTSz6KVc-yq13bwQwA5GwQ",
+  "authDomain": "lienketdatavsapp.firebaseapp.com",
+  "projectId": "lienketdatavsapp",
+  "storageBucket": "lienketdatavsapp.firebasestorage.app",
+  "messagingSenderId": "948696433097",
+  "appId": "1:948696433097:web:216c7e3eab1331940fe818",
+  "measurementId": "G-HJ6Y7J3LQK",
+  "oAuthClientId": "",
+  "recaptchaSiteKey": ""
+}
