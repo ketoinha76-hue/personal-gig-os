@@ -16,13 +16,12 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
   const [editItem, setEditItem] = useState<CrmContact | null>(null);
   const [formData, setFormData] = useState({
     name: "",
-    birthYear: "",
     email: "",
     phone: "",
-    company: "Nhà riêng",
+    company: "Khách hàng ngày chẵn",
     address: "",
     locationUrl: "",
-    value: ""
+    value: "23300"
   });
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -187,13 +186,12 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
     setEditItem(null);
     setFormData({
       name: "",
-      birthYear: "",
       email: "",
       phone: "",
-      company: "Nhà riêng",
+      company: "Khách hàng ngày chẵn",
       address: "",
       locationUrl: "",
-      value: ""
+      value: "23300"
     });
     setShowModal(true);
   };
@@ -202,13 +200,12 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
     setEditItem(item);
     setFormData({
       name: item.name,
-      birthYear: item.birthYear || "",
       email: item.email || "",
       phone: item.phone,
       company: item.company,
       address: item.address,
       locationUrl: item.locationUrl || "",
-      value: item.value.toString()
+      value: item.value.toString() || "23300"
     });
     setShowModal(true);
   };
@@ -285,7 +282,7 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <select
+            <select
             className="bg-black/20 border border-[var(--border-color)] rounded-xl px-3 py-2 text-xs text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)] cursor-pointer"
             value={filterGroup}
             onChange={(e) => setFilterGroup(e.target.value)}
@@ -293,10 +290,8 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
             <option value="All" className="bg-slate-800 text-white">Tất cả Nhóm</option>
             <option value="Khách hàng ngày chẵn" className="bg-slate-800 text-white">Khách hàng ngày chẵn</option>
             <option value="Khách hàng ngày lẻ" className="bg-slate-800 text-white">Khách hàng ngày lẻ</option>
-            <option value="Nhà riêng" className="bg-slate-800 text-white">Nhà riêng (Yakult)</option>
-            <option value="Đại lý" className="bg-slate-800 text-white">Đại lý (Yakult)</option>
-            <option value="Học viên Guitar" className="bg-slate-800 text-white">Học viên Guitar</option>
-            <option value="Khách cưới" className="bg-slate-800 text-white">Khách cưới</option>
+            <option value="Tạp hóa" className="bg-slate-800 text-white">Tạp hóa</option>
+            <option value="Công ty" className="bg-slate-800 text-white">Công ty</option>
           </select>
           <button
             onClick={handleOpenAdd}
@@ -326,8 +321,8 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
               <span className={`text-[10px] font-bold mt-1.5 px-2 py-0.5 rounded-full border w-fit ${
                 c.company === "Khách hàng ngày chẵn" ? "bg-blue-900/20 text-blue-400 border-blue-500/20" :
                 c.company === "Khách hàng ngày lẻ" ? "bg-violet-900/20 text-violet-400 border-violet-500/20" :
-                c.company === "Nhà riêng" ? "bg-amber-900/20 text-amber-400 border-amber-500/20" :
-                c.company === "Đại lý" ? "bg-emerald-900/20 text-emerald-400 border-emerald-500/20" :
+                c.company === "Tạp hóa" ? "bg-amber-900/20 text-amber-400 border-amber-500/20" :
+                c.company === "Công ty" ? "bg-emerald-900/20 text-emerald-400 border-emerald-500/20" :
                 "bg-white/5 text-[var(--text-muted)] border-white/10"
               }`}>
                 {c.company}
@@ -354,16 +349,8 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
               )}
             </div>
 
-            {/* Col 3: Thông tin phụ (Birth & Value) */}
-            <div className="md:col-span-3 flex flex-col gap-1.5 w-full text-[12px] text-[var(--text-muted)] border-l-0 md:border-l border-[var(--border-color)] md:pl-4">
-              {c.birthYear ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] uppercase font-bold text-white/30 w-9">N.Sinh</span>
-                  <span className="text-[var(--text-main)] font-semibold">{c.birthYear}</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 italic opacity-50"><span className="text-[10px] uppercase font-bold text-white/30 w-9">N.Sinh</span> -</div>
-              )}
+            {/* Col 3: Thông tin phụ (Value) */}
+            <div className="md:col-span-3 flex flex-col gap-1.5 w-full text-[12px] text-[var(--text-muted)] border-l-0 md:border-l border-[var(--border-color)] md:pl-4 justify-center">
               {c.value > 0 ? (
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] uppercase font-bold text-white/30 w-9">T.Giá</span>
@@ -436,21 +423,21 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Năm sinh</label>
-                  <input
-                    type="text"
-                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-[13px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-                    value={formData.birthYear}
-                    onChange={(e) => setFormData({ ...formData, birthYear: e.target.value })}
-                  />
-                </div>
-                <div>
                   <label className="block text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Số điện thoại</label>
                   <input
                     type="text"
                     className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-[13px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Giá trị giao dịch (đ)</label>
+                  <input
+                    type="number"
+                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-[13px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+                    value={formData.value}
+                    onChange={(e) => setFormData({ ...formData, value: e.target.value })}
                   />
                 </div>
               </div>
@@ -488,31 +475,18 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
                 <div id="crm-map-container" className="h-32 w-full rounded-xl border border-[var(--border-color)] z-10"></div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2.5">
-                <div>
-                  <label className="block text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Nhóm khách hàng</label>
-                  <select
-                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-[13px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-                    value={formData.company}
-                    onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                  >
-                    <option value="Nhà riêng" className="bg-slate-800 text-white">Nhà riêng (Yakult)</option>
-                    <option value="Đại lý" className="bg-slate-800 text-white">Đại lý (Yakult)</option>
-                    <option value="Học viên Guitar" className="bg-slate-800 text-white">Học viên Guitar</option>
-                    <option value="Khách cưới" className="bg-slate-800 text-white">Khách cưới</option>
-                    <option value="Khách hàng ngày chẵn" className="bg-slate-800 text-white">Khách hàng ngày chẵn</option>
-                    <option value="Khách hàng ngày lẻ" className="bg-slate-800 text-white">Khách hàng ngày lẻ</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Giá trị giao dịch (đ)</label>
-                  <input
-                    type="number"
-                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-[13px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-                    value={formData.value}
-                    onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-                  />
-                </div>
+              <div>
+                <label className="block text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Nhóm khách hàng</label>
+                <select
+                  className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-[13px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+                  value={formData.company}
+                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                >
+                  <option value="Khách hàng ngày chẵn" className="bg-slate-800 text-white">Khách hàng ngày chẵn</option>
+                  <option value="Khách hàng ngày lẻ" className="bg-slate-800 text-white">Khách hàng ngày lẻ</option>
+                  <option value="Tạp hóa" className="bg-slate-800 text-white">Tạp hóa</option>
+                  <option value="Công ty" className="bg-slate-800 text-white">Công ty</option>
+                </select>
               </div>
 
               <div className="flex gap-2 justify-end mt-3">

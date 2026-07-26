@@ -59,13 +59,12 @@ export interface CrmContact {
   id: string;
   name: string;
   email?: string;
-  phone?: string;
-  company: string; // group
-  pipelineStage?: string;
+  phone: string;
+  company: string; // Used for Groups now (Khách hàng ngày chẵn, Tạp hóa, v.v.)
+  pipelineStage: string;
   lastContacted?: string;
   reminderDate?: string;
   value: number;
-  birthYear?: string;
   address: string;
   locationUrl?: string;
 }

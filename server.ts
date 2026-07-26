@@ -521,13 +521,13 @@ async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
   });
   
   const crmRows = [
-    ["ID", "Tên khách hàng", "Số điện thoại", "Email", "Nhóm", "Giai đoạn", "Liên hệ gần nhất", "Nhắc nhở", "Giá trị", "Năm sinh", "Địa chỉ", "Link bản đồ"]
+    ["ID", "Tên khách hàng", "Số điện thoại", "Email", "Nhóm", "Giai đoạn", "Liên hệ gần nhất", "Nhắc nhở", "Giá trị", "Địa chỉ", "Link bản đồ"]
   ];
   db.crmContacts.forEach((c: any) => {
     crmRows.push([
       c.id || "", c.name || "", c.phone || "", c.email || "", c.company || "", 
       c.pipelineStage || "", c.lastContacted || "", c.reminderDate || "", 
-      String(c.value || 0), c.birthYear || "", c.address || "", c.locationUrl || ""
+      String(c.value || 0), c.address || "", c.locationUrl || ""
     ]);
   });
   
@@ -632,9 +632,8 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
         lastContacted: row[6] || "",
         reminderDate: row[7] || "",
         value: Number(row[8]) || 0,
-        birthYear: row[9] || "",
-        address: row[10] || "",
-        locationUrl: row[11] || ""
+        address: row[9] || "",
+        locationUrl: row[10] || ""
       })).filter((c: any) => c.name && c.name.trim() !== "");
       // Deduplicate by name (keep last occurrence)
       const seenNames = new Map<string, any>();
