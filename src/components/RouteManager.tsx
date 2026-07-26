@@ -74,8 +74,6 @@ export default function RouteManager({
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [userHeading, setUserHeading] = useState<number>(0);
 
-  // Full-screen map state
-  const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [isGettingGpsStart, setIsGettingGpsStart] = useState(false);
 
 
@@ -1247,38 +1245,13 @@ export default function RouteManager({
           </div>
 
           {/* Map Column */}
-          <div className={`lg:col-span-7 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-sm ${
-            isMapFullscreen ? 'fixed inset-0 z-[9999] rounded-none p-0 border-0' : ''
-          }`}>
-            {!isMapFullscreen && (
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-extrabold text-[var(--text-main)] uppercase tracking-wider">🗺️ Bản đồ lộ trình di chuyển</h3>
-                <button
-                  onClick={() => {
-                    setIsMapFullscreen(true);
-                    setTimeout(() => {
-                      if (routeMapRef.current) {
-                        routeMapRef.current.invalidateSize();
-                      }
-                    }, 50);
-                    setTimeout(() => {
-                      if (routeMapRef.current) {
-                        routeMapRef.current.invalidateSize();
-                      }
-                    }, 300);
-                  }}
-                  className="p-1.5 rounded-lg bg-black/30 hover:bg-black/50 text-[var(--text-muted)] hover:text-white transition-all border border-[var(--border-color)] cursor-pointer text-xs font-bold flex items-center gap-1"
-                  title="Mở rộng bản đồ toàn màn hình"
-                >
-                  ⛶ Toàn màn hình
-                </button>
-              </div>
-            )}
+          <div className="lg:col-span-7 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-extrabold text-[var(--text-main)] uppercase tracking-wider">🗺️ Bản đồ lộ trình di chuyển</h3>
+            </div>
             <div
               id="route-map"
-              className={`w-full rounded-xl border border-[var(--border-color)] z-10 relative ${
-                isMapFullscreen ? 'h-full rounded-none border-0' : 'h-[450px]'
-              }`}
+              className="w-full h-[450px] rounded-xl border border-[var(--border-color)] z-10 relative"
             >
               {/* GPS Tracking Button */}
               <button
@@ -1309,50 +1282,7 @@ export default function RouteManager({
                 </button>
               )}
 
-              {/* Exit fullscreen button */}
-              {isMapFullscreen && (
-                <button
-                  onClick={() => {
-                    setIsMapFullscreen(false);
-                    setTimeout(() => {
-                      if (routeMapRef.current) {
-                        routeMapRef.current.invalidateSize();
-                      }
-                    }, 50);
-                    setTimeout(() => {
-                      if (routeMapRef.current) {
-                        routeMapRef.current.invalidateSize();
-                      }
-                    }, 300);
-                  }}
-                  className="absolute top-4 right-4 z-[1000] px-3 py-2 bg-black/80 text-white rounded-xl border border-white/20 hover:bg-black/90 transition-all cursor-pointer text-sm font-bold flex items-center gap-2 shadow-2xl"
-                  title="Thoát toàn màn hình"
-                >
-                  <X className="w-4 h-4" /> Thoát toàn màn hình
-                </button>
-              )}
 
-              {/* Fullscreen Google Maps navigate button */}
-              {isMapFullscreen && userLocation && optimizedRoutePath.length > 0 && (() => {
-                const nextStop = optimizedRoutePath.find(pt => !pt.completed);
-                if (!nextStop) return null;
-                return (
-                  <div className="absolute top-4 left-4 z-[1000] flex flex-col gap-2">
-                    <div className="bg-black/80 text-white rounded-xl px-4 py-2 text-sm font-bold border border-white/20 shadow-2xl">
-                      📍 Điểm tiếp theo: {nextStop.name}
-                    </div>
-                    <a
-                      href={`https://www.google.com/maps/dir/?api=1&origin=${userLocation[0]},${userLocation[1]}&destination=${nextStop.coords[0]},${nextStop.coords[1]}&travelmode=driving`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl px-4 py-3 text-sm flex items-center gap-2 shadow-2xl border border-blue-400 transition-all"
-                    >
-                      <Map className="w-5 h-5" />
-                      Mở Google Maps dẫn đường
-                    </a>
-                  </div>
-                );
-              })()}
             </div>
           </div>
 
