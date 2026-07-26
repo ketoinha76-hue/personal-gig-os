@@ -292,6 +292,18 @@ async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
     { range: "Khách hàng!A1", values: crmRows }
   ];
   
+  // Clear the existing data first so deleted items don't leave phantom rows behind
+  await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${targetSpreadsheetId}/values:batchClear`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      ranges: ["Công việc!A1:Z1000", "Khách hàng!A1:Z1000"]
+    })
+  });
+  
   const updateRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${targetSpreadsheetId}/values:batchUpdate`, {
     method: "POST",
     headers: {
