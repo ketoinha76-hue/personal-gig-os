@@ -471,7 +471,7 @@ app.put("/api/settings", (req, res) => {
 // Google Sheets Sync Functions & API Endpoints
 async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
   const db = getDB();
-  const sheetsToCreate = ["Công việc", "Lịch học", "Thu chi", "Khách hàng", "Sản phẩm", "Học phí"];
+  const sheetsToCreate = ["Công việc", "Lịch làm việc", "Khách hàng"];
   let targetSpreadsheetId = spreadsheetId;
   
   if (!targetSpreadsheetId) {
@@ -483,7 +483,7 @@ async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
       },
       body: JSON.stringify({
         properties: {
-          title: "Personal GIG-OS Workspace - Huỳnh Bá Long DB"
+          title: "Personal GIG-OS - Huỳnh Bá Long"
         },
         sheets: sheetsToCreate.map(name => ({ properties: { title: name } }))
       })
@@ -500,7 +500,7 @@ async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
   
   // 1. Prepare values for each tab
   const taskRows = [
-    ["ID", "Title", "Description", "Priority", "Status", "ProjectId", "EstimateTime", "ActualTime", "CreatedAt"]
+    ["ID", "Tiêu đề", "Mô tả", "Mức ưu tiên", "Trạng thái", "Dự án ID", "Thời gian ước tính", "Thời gian thực", "Ngày tạo"]
   ];
   db.tasks.forEach((t: any) => {
     taskRows.push([
@@ -511,7 +511,7 @@ async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
   });
   
   const scheduleRows = [
-    ["ID", "Title", "Description", "DayOfWeek", "StartTime", "EndTime", "Color", "Completed", "Address"]
+    ["ID", "Tiêu đề", "Mô tả", "Ngày trong tuần", "Giờ bắt đầu", "Giờ kết thúc", "Màu sắc", "Hoàn thành", "Địa chỉ"]
   ];
   db.schedules.forEach((s: any) => {
     scheduleRows.push([
@@ -520,18 +520,8 @@ async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
     ]);
   });
   
-  const txRows = [
-    ["ID", "ProjectId", "ProjectName", "Type", "Amount", "Note", "Date"]
-  ];
-  db.transactions.forEach((tx: any) => {
-    txRows.push([
-      tx.id || "", tx.projectId || "", tx.projectName || "", tx.type || "", 
-      String(tx.amount || 0), tx.note || "", tx.date || ""
-    ]);
-  });
-  
   const crmRows = [
-    ["ID", "Name", "Phone", "Email", "Company", "PipelineStage", "LastContacted", "ReminderDate", "Value", "BirthYear", "Address", "LocationUrl"]
+    ["ID", "Tên khách hàng", "Số điện thoại", "Email", "Nhóm", "Giai đoạn", "Liên hệ gần nhất", "Nhắc nhở", "Giá trị", "Năm sinh", "Địa chỉ", "Link bản đồ"]
   ];
   db.crmContacts.forEach((c: any) => {
     crmRows.push([
@@ -541,36 +531,10 @@ async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
     ]);
   });
   
-  const productRows = [
-    ["ID", "SKU", "Name", "Description", "Price", "Cost", "Category"]
-  ];
-  db.products.forEach((p: any) => {
-    productRows.push([
-      p.id || "", p.sku || "", p.name || "", p.description || "", 
-      String(p.price || 0), String(p.cost || 0), p.category || ""
-    ]);
-  });
-  
-  const tuitionRows = [
-    ["ID", "StudentName", "CourseName", "TuitionFee", "TotalLessons", "CompletedLessons", "PaymentStatus", "Notes", "SyncedToFinance"]
-  ];
-  if (db.tuitionRecords) {
-    db.tuitionRecords.forEach((tr: any) => {
-      tuitionRows.push([
-        tr.id || "", tr.studentName || "", tr.courseName || "", String(tr.tuitionFee || 0),
-        String(tr.totalLessons || 0), String(tr.completedLessons || 0), tr.paymentStatus || "", 
-        tr.notes || "", String(tr.syncedToFinance || false)
-      ]);
-    });
-  }
-  
   const dataPayload = [
     { range: "Công việc!A1", values: taskRows },
-    { range: "Lịch học!A1", values: scheduleRows },
-    { range: "Thu chi!A1", values: txRows },
-    { range: "Khách hàng!A1", values: crmRows },
-    { range: "Sản phẩm!A1", values: productRows },
-    { range: "Học phí!A1", values: tuitionRows }
+    { range: "Lịch làm việc!A1", values: scheduleRows },
+    { range: "Khách hàng!A1", values: crmRows }
   ];
   
   const updateRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${targetSpreadsheetId}/values:batchUpdate`, {
@@ -602,14 +566,11 @@ async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
 
 async function importFromGoogleSheets(token: string, spreadsheetId: string) {
   const db = getDB();
-  // Support both English and Vietnamese tab names
+  // Support Vietnamese tab names
   const ranges = [
     "Công việc", "Tasks",
-    "Lịch học", "Schedules",
-    "Thu chi", "Transactions",
-    "Khách hàng", "CRM",
-    "Sản phẩm", "Products",
-    "Học phí", "Tuitions"
+    "Lịch làm việc", "Lịch học", "Schedules",
+    "Khách hàng", "CRM"
   ];
   const queryStr = ranges.map(r => `ranges=${encodeURIComponent(r)}!A1:Z1000`).join("&");
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchGet?valueRenderOption=FORMATTED_VALUE&${queryStr}`;
@@ -648,7 +609,7 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
         actualTime: Number(row[7]) || 0,
         createdAt: row[8] || new Date().toISOString()
       }));
-    } else if (rangeName.startsWith("schedules") || rangeName.startsWith("lịch học")) {
+    } else if (rangeName.startsWith("schedules") || rangeName.startsWith("lịch làm việc") || rangeName.startsWith("lịch học")) {
       db.schedules = rows.map((row: any) => ({
         id: row[0] || "",
         title: row[1] || "",
@@ -659,16 +620,6 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
         color: row[6] || "",
         completed: row[7] === "true",
         address: row[8] || ""
-      }));
-    } else if (rangeName.startsWith("transactions") || rangeName.startsWith("thu chi")) {
-      db.transactions = rows.map((row: any) => ({
-        id: row[0] || "",
-        projectId: row[1] || "",
-        projectName: row[2] || "",
-        type: row[3] === "Chi" ? "Chi" : "Thu",
-        amount: Number(row[4]) || 0,
-        note: row[5] || "",
-        date: row[6] || new Date().toISOString().split("T")[0]
       }));
     } else if (rangeName.startsWith("crm") || rangeName.startsWith("khách hàng")) {
       const imported = rows.map((row: any) => ({
@@ -691,28 +642,6 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
         seenNames.set(c.name.trim().toLowerCase(), c);
       });
       db.crmContacts = Array.from(seenNames.values());
-    } else if (rangeName.startsWith("products") || rangeName.startsWith("sản phẩm")) {
-      db.products = rows.map((row: any) => ({
-        id: row[0] || "",
-        sku: row[1] || "",
-        name: row[2] || "",
-        description: row[3] || "",
-        price: Number(row[4]) || 0,
-        cost: Number(row[5]) || 0,
-        category: row[6] || ""
-      }));
-    } else if (rangeName.startsWith("tuitions") || rangeName.startsWith("học phí")) {
-      db.tuitionRecords = rows.map((row: any) => ({
-        id: row[0] || "",
-        studentName: row[1] || "",
-        courseName: row[2] || "",
-        tuitionFee: Number(row[3]) || 0,
-        totalLessons: Number(row[4]) || 0,
-        completedLessons: Number(row[5]) || 0,
-        paymentStatus: row[6] || "Chưa đóng",
-        notes: row[7] || "",
-        syncedToFinance: row[8] === "true"
-      }));
     }
   });
   

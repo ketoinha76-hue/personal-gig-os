@@ -2,14 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Navbar from "./components/Navbar";
 import Dashboard from "./components/Dashboard";
-import ProductCatalog from "./components/ProductCatalog";
 import TaskBoard from "./components/TaskBoard";
-import FinanceLedger from "./components/FinanceLedger";
 import CrmManager from "./components/CrmManager";
 import RouteManager from "./components/RouteManager";
 import SettingsPanel from "./components/SettingsPanel";
 import GoogleSheetsSync from "./components/GoogleSheetsSync";
-import { Settings, Task, Project, Product, CrmContact, Schedule, Transaction, Tuition } from "./types";
+import { Settings, Task, Project, CrmContact, Schedule } from "./types";
 import { getPersistedToken, initAuth, googleSignIn } from "./lib/firebaseAuth";
 
 export default function App() {
@@ -31,33 +29,27 @@ export default function App() {
     telegramChatId: "",
     telegramNotificationsEnabled: false,
     emailNotificationsEnabled: false,
-    theme: "dark",
+    theme: "light",
     language: "vi",
     timezone: "Asia/Ho_Chi_Minh",
     geminiApiKey: "",
-    savingsGoalName: "Mua máy ảnh Sony A7IV",
-    savingsGoalAmount: 45000000,
+    savingsGoalName: "",
+    savingsGoalAmount: 0,
     depotCoords: "10.8087727,106.9241267",
     googleSpreadsheetId: "1i7Ko3USW_UjsIeURYj9iNGcU91GYpyO9QooEdhNk8WY"
   });
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [crmContacts, setCrmContacts] = useState<CrmContact[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [tuitionRecords, setTuitionRecords] = useState<Tuition[]>([]);
 
-  // Voice recognition states
-  const [isListeningVoice, setIsListeningVoice] = useState(false);
-  const [voiceCommandText, setVoiceCommandText] = useState("");
   const [isInitialSyncing, setIsInitialSyncing] = useState(true);
 
   // Sync theme to root element
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("app_theme", theme);
-  }, [theme]);
+    document.documentElement.setAttribute("data-theme", "light");
+    localStorage.setItem("app_theme", "light");
+  }, []);
 
   // Handle Online/Offline Status and Google Auth on start
   useEffect(() => {
@@ -115,7 +107,6 @@ export default function App() {
 
   // Standard fetch wrapper with automatic offline queueing
   const apiCall = async (url: string, method = "GET", body: any = null) => {
-    // Determine the base URL: Use Render URL if running inside Capacitor (where location.hostname is localhost)
     const baseUrl = window.location.hostname === "localhost" && (window as any).Capacitor 
       ? "https://personal-igjw.onrender.com" 
       : "";
@@ -164,25 +155,19 @@ export default function App() {
 
   const loadAllData = async (shouldAutoExport = false) => {
     try {
-      const [settingsData, tasksData, projectsData, productsData, schedulesData, crmData, txData, tuitionData] = await Promise.all([
+      const [settingsData, tasksData, projectsData, schedulesData, crmData] = await Promise.all([
         apiCall("/api/settings"),
         apiCall("/api/tasks"),
         apiCall("/api/projects"),
-        apiCall("/api/products"),
         apiCall("/api/schedules"),
-        apiCall("/api/crm"),
-        apiCall("/api/transactions"),
-        apiCall("/api/tuitions").catch(() => [])
+        apiCall("/api/crm")
       ]);
 
       if (settingsData) setSettings(settingsData);
       if (tasksData) setTasks(tasksData);
       if (projectsData) setProjects(projectsData);
-      if (productsData) setProducts(productsData);
       if (schedulesData) setSchedules(schedulesData);
       if (crmData) setCrmContacts(crmData);
-      if (txData) setTransactions(txData);
-      if (tuitionData) setTuitionRecords(tuitionData);
 
       // Automatic background export to Google Sheets
       if (shouldAutoExport) {
@@ -217,7 +202,6 @@ export default function App() {
     setLoading(true);
     showToast("Đang tải lại dữ liệu...", "info");
     
-    // Attempt double sync on manual refresh too
     const token = getPersistedToken();
     if (token && settings.googleSpreadsheetId) {
       setIsSyncingSheets(true);
@@ -244,46 +228,6 @@ export default function App() {
     setTimeout(() => setToast(null), 4000);
   };
 
-
-  // Text-To-Speech
-  const speakText = (text: string) => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      
-      const setVoiceAndSpeak = () => {
-        const voices = window.speechSynthesis.getVoices();
-        // Specifically search for vi-VN or Vietnamese voices to avoid funny foreign accents
-        const viVoice = voices.find(v => 
-          v.lang.toLowerCase() === "vi-vn" || 
-          v.lang.toLowerCase().startsWith("vi") || 
-          v.name.toLowerCase().includes("vietnamese") || 
-          v.name.toLowerCase().includes("việt")
-        );
-        if (viVoice) {
-          utterance.voice = viVoice;
-        } else {
-          const fallbackViVoice = voices.find(v => v.lang.toLowerCase().includes("vi"));
-          if (fallbackViVoice) utterance.voice = fallbackViVoice;
-        }
-        utterance.lang = "vi-VN";
-        utterance.rate = 1.0;
-        window.speechSynthesis.speak(utterance);
-      };
-
-      if (window.speechSynthesis.getVoices().length === 0) {
-        window.speechSynthesis.onvoiceschanged = () => {
-          setVoiceAndSpeak();
-        };
-      } else {
-        setVoiceAndSpeak();
-      }
-      showToast("Đang phát bằng giọng đọc tiếng Việt chuẩn...");
-    } else {
-      showToast("Trình duyệt của bạn không hỗ trợ công cụ đọc văn bản.", "warning");
-    }
-  };
-
   // Save Settings
   const handleSaveSettings = async (updated: Settings) => {
     try {
@@ -292,34 +236,6 @@ export default function App() {
       showToast("Đã lưu các tùy chỉnh thành công!");
     } catch (err: any) {
       showToast("Lỗi lưu cấu hình: " + err.message, "danger");
-    }
-  };
-
-  // Save Product
-  const onSaveProduct = async (prod: any) => {
-    try {
-      if (prod.id) {
-        await apiCall(`/api/products/${prod.id}`, "PUT", prod);
-        showToast("Cập nhật sản phẩm thành công!");
-      } else {
-        await apiCall("/api/products", "POST", prod);
-        showToast("Đã thêm sản phẩm mới thành công!");
-      }
-      loadAllData(true);
-    } catch (err: any) {
-      showToast("Lỗi lưu sản phẩm: " + err.message, "danger");
-    }
-  };
-
-  const onDeleteProduct = async (id: string) => {
-    if (confirm("Xóa gói sản phẩm/dịch vụ này?")) {
-      try {
-        await apiCall(`/api/products/${id}`, "DELETE");
-        showToast("Đã xóa sản phẩm thành công.");
-        loadAllData(true);
-      } catch (err: any) {
-        showToast("Lỗi xóa: " + err.message, "danger");
-      }
     }
   };
 
@@ -389,209 +305,8 @@ export default function App() {
     }
   };
 
-  // --- TUITION RECORDS HANDLERS ---
-  const onSaveTuition = async (record: any) => {
-    try {
-      if (record.id) {
-        await apiCall(`/api/tuitions/${record.id}`, "PUT", record);
-        showToast("Đã cập nhật thông tin học phí thành công!", "success");
-      } else {
-        await apiCall("/api/tuitions", "POST", record);
-        showToast("Đã thêm thông tin học phí học viên mới!", "success");
-      }
-      loadAllData(true);
-    } catch (err: any) {
-      showToast("Lỗi lưu học phí: " + err.message, "danger");
-    }
-  };
-
-  const onDeleteTuition = async (id: string) => {
-    if (confirm("Bạn có chắc chắn muốn xóa học phí của học viên này?")) {
-      try {
-        await apiCall(`/api/tuitions/${id}`, "DELETE");
-        showToast("Đã xóa hồ sơ học phí thành công.", "success");
-        loadAllData(true);
-      } catch (err: any) {
-        showToast("Lỗi xóa hồ sơ: " + err.message, "danger");
-      }
-    }
-  };
-
-  const onSyncTuitionsToFinance = async () => {
-    try {
-      showToast("Đang đồng bộ học phí đóng mới sang sổ sách...", "info");
-      const res = await apiCall("/api/tuitions/sync", "POST");
-      if (res.count > 0) {
-        showToast(res.message, "success");
-      } else {
-        showToast(res.message, "info");
-      }
-      loadAllData(true);
-    } catch (err: any) {
-      showToast("Lỗi đồng bộ: " + err.message, "danger");
-    }
-  };
-
-  // Save manual transaction
-  const onSaveTx = async (tx: any) => {
-    try {
-      const proj = projects.find(p => p.id === tx.projectId);
-      const payload = {
-        ...tx,
-        projectName: proj ? proj.name : "Khác"
-      };
-      await apiCall("/api/transactions", "POST", payload);
-      showToast("Đã ghi nhận giao dịch thành công!");
-      loadAllData(true);
-    } catch (err: any) {
-      showToast("Lỗi lưu giao dịch: " + err.message, "danger");
-    }
-  };
-
-  const onDeleteTx = async (id: string) => {
-    if (confirm("Xóa dòng giao dịch thu chi này?")) {
-      try {
-        await apiCall(`/api/transactions/${id}`, "DELETE");
-        showToast("Đã xóa giao dịch.");
-        loadAllData(true);
-      } catch (err: any) {
-        showToast("Lỗi xóa: " + err.message, "danger");
-      }
-    }
-  };
-
-  // Scan invoice via Gemini OCR
-  const handleInvoiceScan = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    showToast("AI đang tiến hành phân tích hóa đơn chi phí...", "info");
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = async () => {
-      const base64Data = (reader.result as string).split(",")[1];
-      try {
-        const res = await apiCall("/api/ai/receipt", "POST", {
-          data: base64Data,
-          type: file.type
-        });
-        if (res.success) {
-          showToast(`Quét thành công! Đã tự động chi ${res.transaction.amount.toLocaleString("vi-VN")}đ cho ${res.transaction.projectName}`, "success");
-          loadAllData();
-        } else {
-          showToast("Nhận diện hóa đơn lỗi: " + res.error, "danger");
-        }
-      } catch (err: any) {
-        showToast("AI phân tích lỗi: " + err.message, "danger");
-      }
-    };
-  };
-
-  // Trigger EOD Telegram Report
-  const handleSendEODReport = async () => {
-    showToast("Đang gửi báo cáo công việc cuối ngày lên Telegram...", "info");
-    try {
-      const res = await apiCall("/api/telegram/eod-report", "POST");
-      if (res.success) {
-        showToast("Gửi báo cáo công việc cuối ngày thành công!", "success");
-      } else {
-        showToast("Lỗi gửi báo cáo: " + res.error, "danger");
-      }
-    } catch (err: any) {
-      showToast("Không thể kết nối Telegram: " + err.message, "danger");
-    }
-  };
-
-  // Webhook integration
   const handleTriggerWebhookSetup = async () => {
-    showToast("Đang kích hoạt liên kết Webhook 2 chiều...", "info");
-    try {
-      const res = await apiCall("/api/settings/telegram-webhook", "POST");
-      if (res.success) {
-        showToast("Đã kích hoạt Webhook hai chiều thành công!", "success");
-      } else {
-        showToast("Lỗi kích hoạt: " + res.error, "danger");
-      }
-    } catch (err: any) {
-      showToast("Lỗi liên kết: " + err.message, "danger");
-    }
-  };
-
-  // Voice search speech recognition
-  const handleVoiceRecognition = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      showToast("Trình duyệt của bạn không hỗ trợ nhận dạng giọng nói.", "danger");
-      return;
-    }
-
-    const rec = new SpeechRecognition();
-    rec.lang = "vi-VN";
-    rec.interimResults = false;
-
-    setIsListeningVoice(true);
-    rec.start();
-
-    rec.onresult = async (e: any) => {
-      const text = e.results[0][0].transcript;
-      setVoiceCommandText(text);
-      showToast("AI đang xử lý khẩu lệnh thoại: " + text, "info");
-
-      try {
-        const res = await apiCall("/api/voice-command", "POST", { text });
-        if (res.success) {
-          showToast(res.message, "success");
-          speakText(res.message);
-          loadAllData(true);
-        } else {
-          showToast("Lỗi khẩu lệnh: " + res.error, "danger");
-          speakText("Lỗi: " + res.error);
-        }
-      } catch (err: any) {
-        showToast("Lỗi kết nối AI: " + err.message, "danger");
-      }
-    };
-
-    rec.onerror = (e: any) => {
-      showToast("Không nhận dạng được âm thanh hoặc micro bị tắt: " + e.error, "danger");
-      setIsListeningVoice(false);
-    };
-
-    rec.onend = () => {
-      setIsListeningVoice(false);
-    };
-  };
-
-  const [showTxModalInApp, setShowTxModalInApp] = useState(false);
-  const [newTxInApp, setNewTxInApp] = useState({
-    projectId: "p-1",
-    type: "Thu" as "Thu" | "Chi",
-    amount: "",
-    note: "",
-    date: new Date().toISOString().split("T")[0]
-  });
-
-  const handleSaveTxInApp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTxInApp.amount || !newTxInApp.note) {
-      showToast("Vui lòng nhập đầy đủ các trường.", "warning");
-      return;
-    }
-    await onSaveTx({
-      projectId: newTxInApp.projectId,
-      type: newTxInApp.type,
-      amount: Number(newTxInApp.amount),
-      note: newTxInApp.note,
-      date: newTxInApp.date
-    });
-    setShowTxModalInApp(false);
-    setNewTxInApp({
-      projectId: "p-1",
-      type: "Thu",
-      amount: "",
-      note: "",
-      date: new Date().toISOString().split("T")[0]
-    });
+    // no-op: Telegram removed
   };
 
   const handleGoogleLinkAndCreate = async () => {
@@ -604,14 +319,12 @@ export default function App() {
         });
         showToast("Đăng nhập thành công! Đang tự động khởi tạo file Google Sheets mới...", "info");
         
-        // Create a brand new Google Sheets file by calling /api/sync/google-sheets with action=export and no spreadsheetId
         const createRes = await apiCall("/api/sync/google-sheets", "POST", {
           action: "export",
           token: res.accessToken
         });
         
         if (createRes && createRes.spreadsheetId) {
-          // Save the spreadsheet ID & URL to settings
           const updatedSettings = {
             ...settings,
             googleSpreadsheetId: createRes.spreadsheetId,
@@ -630,9 +343,6 @@ export default function App() {
       showToast("Lỗi liên kết Google Sheets: " + err.message, "danger");
     }
   };
-
-  const netProfitVal = transactions.filter(t => t.type === "Thu").reduce((a, b) => a + Number(b.amount), 0) -
-                       transactions.filter(t => t.type === "Chi").reduce((a, b) => a + Number(b.amount), 0);
 
   if (isInitialSyncing) {
     return (
@@ -660,9 +370,6 @@ export default function App() {
                 <span className={`w-2 h-2 rounded-full ${onlineStatus ? "bg-emerald-500" : "bg-amber-500"}`}></span>
                 <span className="text-[11px]">{onlineStatus ? "Đang trực tuyến" : "Mất kết nối mạng (Lưu offline)"}</span>
               </div>
-              {voiceCommandText && (
-                <span className="text-xs text-[var(--primary)] font-semibold italic">Lệnh thoại gần nhất: "{voiceCommandText}"</span>
-              )}
             </div>
           </div>
 
@@ -700,15 +407,6 @@ export default function App() {
                 />
               )}
 
-              {activeTab === "products" && (
-                <ProductCatalog
-                  products={products}
-                  onSave={onSaveProduct}
-                  onDelete={onDeleteProduct}
-                  showToast={showToast}
-                />
-              )}
-
               {activeTab === "tasks" && (
                 <TaskBoard
                   tasks={tasks}
@@ -719,21 +417,6 @@ export default function App() {
                   showToast={showToast}
                   apiCall={apiCall}
                   refreshData={loadAllData}
-                />
-              )}
-
-              {activeTab === "finance" && (
-                <FinanceLedger
-                  transactions={transactions}
-                  projects={projects}
-                  onSaveTx={onSaveTx}
-                  onDeleteTx={onDeleteTx}
-                  handleInvoiceScan={handleInvoiceScan}
-                  showToast={showToast}
-                  tuitionRecords={tuitionRecords}
-                  onSaveTuition={onSaveTuition}
-                  onDeleteTuition={onDeleteTuition}
-                  onSyncTuitionsToFinance={onSyncTuitionsToFinance}
                 />
               )}
 
@@ -808,95 +491,6 @@ export default function App() {
           </AnimatePresence>
         )}
       </main>
-
-      {/* Global Quick transaction modal */}
-      {showTxModalInApp && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <h3 className="text-base font-extrabold text-[var(--text-main)] mb-5">Ghi nhận nhanh Thu nhập / Chi phí</h3>
-            <form onSubmit={handleSaveTxInApp} className="flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Loại giao dịch</label>
-                  <select
-                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-                    value={newTxInApp.type}
-                    onChange={(e) => setNewTxInApp({ ...newTxInApp, type: e.target.value as any })}
-                  >
-                    <option value="Thu" className="bg-slate-800 text-white">Thu nhập (+)</option>
-                    <option value="Chi" className="bg-slate-800 text-white">Chi phí (-)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Liên kết Công việc</label>
-                  <select
-                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-                    value={newTxInApp.projectId}
-                    onChange={(e) => setNewTxInApp({ ...newTxInApp, projectId: e.target.value })}
-                  >
-                    {projects.map((p) => (
-                      <option key={p.id} value={p.id} className="bg-slate-800 text-white">
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Số tiền (đ) *</label>
-                  <input
-                    type="number"
-                    required
-                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-                    value={newTxInApp.amount}
-                    onChange={(e) => setNewTxInApp({ ...newTxInApp, amount: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Ngày giao dịch</label>
-                  <input
-                    type="date"
-                    required
-                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-                    value={newTxInApp.date}
-                    onChange={(e) => setNewTxInApp({ ...newTxInApp, date: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Ghi chú giao dịch *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Giao sữa thu tiền / đổ xăng..."
-                  className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-                  value={newTxInApp.note}
-                  onChange={(e) => setNewTxInApp({ ...newTxInApp, note: e.target.value })}
-                />
-              </div>
-
-              <div className="flex gap-3 justify-end mt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowTxModalInApp(false)}
-                  className="px-4 py-2 bg-[var(--overlay-03)] border border-[var(--border-color)] text-[var(--text-main)] text-xs font-bold rounded-lg cursor-pointer"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[var(--primary)] text-white text-xs font-bold rounded-lg cursor-pointer hover:bg-[var(--primary-hover)] shadow-sm"
-                >
-                  Ghi vào sổ
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Toast Notification HUD */}
       {toast && (

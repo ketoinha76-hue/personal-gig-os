@@ -245,36 +245,7 @@
       ]
     }
   ],
-  "crmContacts": [
-    {
-      "id": "crm-1",
-      "name": "Chị Lan (Khách quen Yakult Q1)",
-      "email": "lan.nguyen@gmail.com",
-      "phone": "0912445566",
-      "company": "Nhà riêng",
-      "pipelineStage": "Đã chốt",
-      "lastContacted": "2026-07-10",
-      "reminderDate": "2026-07-15",
-      "value": 240000,
-      "birthYear": "1988",
-      "address": "12 Lê Thánh Tôn, Bến Nghé, Quận 1, TPHCM",
-      "locationUrl": "https://www.google.com/maps?q=10.7794,106.7028"
-    },
-    {
-      "id": "crm-2",
-      "name": "Anh Nam (Học viên Guitar nâng cao)",
-      "email": "nam.guitar@gmail.com",
-      "phone": "0988776655",
-      "company": "Học viên Guitar",
-      "pipelineStage": "Đã chốt",
-      "lastContacted": "2026-07-12",
-      "reminderDate": "2026-07-16",
-      "value": 2000000,
-      "birthYear": "2002",
-      "address": "45/3 Điện Biên Phủ, Bình Thạnh, TPHCM",
-      "locationUrl": "https://www.google.com/maps?q=10.8018,106.7119"
-    }
-  ],
+  "crmContacts": [],
   "schedules": [],
   "transactions": [
     {
