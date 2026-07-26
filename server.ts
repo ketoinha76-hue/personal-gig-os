@@ -382,8 +382,8 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
     const rows = values.slice(1);
     
     if (rangeName.startsWith("schedules") || rangeName.startsWith("công việc")) {
-      db.schedules = rows.map((row: any) => ({
-        id: row[0] || "",
+      db.schedules = rows.map((row: any, i: number) => ({
+        id: row[0] || `sch-imported-${Date.now()}-${i}`,
         title: row[1] || "",
         description: row[2] || "",
         dayOfWeek: Number(row[3]) || 1,
@@ -394,8 +394,8 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
         address: row[8] || ""
       }));
     } else if (rangeName.startsWith("crm") || rangeName.startsWith("khách hàng")) {
-      const imported = rows.map((row: any) => ({
-        id: row[0] || "",
+      const imported = rows.map((row: any, i: number) => ({
+        id: row[0] || `crm-imported-${Date.now()}-${i}`,
         name: row[1] || "",
         phone: row[2] || "",
         company: row[3] || "",

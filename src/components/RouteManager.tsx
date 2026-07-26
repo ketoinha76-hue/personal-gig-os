@@ -485,8 +485,24 @@ export default function RouteManager({
     updated[idx].completed = !updated[idx].completed;
     setOptimizedRoutePath(updated);
 
-    if (isTracking && updated[idx].completed) {
-      const now = Date.now();
+    // Auto-start tracking if they check a box and haven't started yet
+    let currentIsTracking = isTracking;
+    let currentLastCheckTime = lastCheckTime;
+    let currentStartTime = trackingStartTime;
+    const now = Date.now();
+
+    if (!currentIsTracking && updated[idx].completed) {
+      setIsTracking(true);
+      setTrackingStartTime(now);
+      setLastCheckTime(now);
+      setTrackingDistance(0);
+      currentIsTracking = true;
+      currentStartTime = now;
+      currentLastCheckTime = now;
+      showToast("Tự động bắt đầu ghi nhận lộ trình!", "info");
+    }
+
+    if (currentIsTracking && updated[idx].completed) {
       let depotLat = 10.8087727;
       let depotLng = 106.9241267;
       const extractedStart = extractCoordinates(depotCoords);
@@ -507,12 +523,13 @@ export default function RouteManager({
         fromName = updated[idx-1].name;
       }
       
-      const timeTakenMs = now - (lastCheckTime || trackingStartTime || now);
+      const timeTakenMs = now - (currentLastCheckTime || currentStartTime || now);
       const newDetail = {
         fromName: fromName,
         toName: updated[idx].name,
         distanceKm: addedDist,
-        timeTakenMs: timeTakenMs
+        timeTakenMs: timeTakenMs,
+        completedAt: new Date(now).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' })
       };
       const updatedDetails = [...completedRouteDetails, newDetail];
       setCompletedRouteDetails(updatedDetails);
@@ -1345,8 +1362,10 @@ export default function RouteManager({
                                 </span>
                               </div>
                               <div className="flex justify-between items-center text-[10px]">
-                                <span className="text-[var(--text-muted)] bg-white/5 px-1.5 py-0.5 rounded">Khỏang cách: <strong className="text-white">{d.distanceKm.toFixed(1)}km</strong></span>
-                                <span className="text-[var(--text-muted)] bg-white/5 px-1.5 py-0.5 rounded">T.gian: <strong className="text-white">{Math.floor(d.timeTakenMs/60000)}p{Math.floor((d.timeTakenMs%60000)/1000)}s</strong></span>
+                                <span className="text-[var(--text-muted)] bg-white/5 px-1.5 py-0.5 rounded">Đoạn đường: <strong className="text-white">{d.distanceKm.toFixed(1)}km</strong></span>
+                                <span className="text-[var(--text-muted)] bg-white/5 px-1.5 py-0.5 rounded">
+                                  Tích lúc: <strong className="text-amber-400">{d.completedAt || Math.floor(d.timeTakenMs/60000) + 'p'}</strong>
+                                </span>
                               </div>
                             </div>
                           ))}
