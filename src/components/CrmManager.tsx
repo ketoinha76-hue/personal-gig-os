@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { CrmContact } from "../types";
 
 interface CrmManagerProps {
@@ -46,6 +47,7 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
   });
 
   const crmMapRef = useRef<any>(null);
+  const crmMarkerRef = useRef<any>(null);
 
   const extractCoordinates = (url: string) => {
     if (!url) return null;
@@ -132,6 +134,7 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
             iconSize: [26, 26]
           })
         }).addTo(map);
+        crmMarkerRef.current = marker;
 
         const updateInputs = (lat: number, lng: number) => {
           const mapsUrl = `https://www.google.com/maps?q=${lat.toFixed(6)},${lng.toFixed(6)}`;
@@ -153,6 +156,7 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
         crmMapRef.current.remove();
         crmMapRef.current = null;
       }
+      crmMarkerRef.current = null;
     }
   }, [showModal]);
 
@@ -172,12 +176,18 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
           if (crmMapRef.current) {
             crmMapRef.current.setView(extracted, 14);
           }
+          if (crmMarkerRef.current) {
+            crmMarkerRef.current.setLatLng(extracted);
+          }
         }
       }
     } else {
       const extracted = extractCoordinates(val);
       if (extracted && crmMapRef.current) {
         crmMapRef.current.setView(extracted, 14);
+      }
+      if (extracted && crmMarkerRef.current) {
+        crmMarkerRef.current.setLatLng(extracted);
       }
     }
   };
@@ -215,10 +225,15 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
       showToast("Đang định vị tọa độ GPS hiện tại...", "info");
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const mapsUrl = `https://www.google.com/maps?q=${position.coords.latitude.toFixed(6)},${position.coords.longitude.toFixed(6)}`;
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const mapsUrl = `https://www.google.com/maps?q=${lat.toFixed(6)},${lng.toFixed(6)}`;
           setFormData((prev) => ({ ...prev, locationUrl: mapsUrl }));
           if (crmMapRef.current) {
-            crmMapRef.current.setView([position.coords.latitude, position.coords.longitude], 14);
+            crmMapRef.current.setView([lat, lng], 14);
+          }
+          if (crmMarkerRef.current) {
+            crmMarkerRef.current.setLatLng([lat, lng]);
           }
           showToast("Định vị tọa độ GPS thành công!", "success");
         },
@@ -228,6 +243,35 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
       );
     } else {
       showToast("Định vị GPS không khả dụng trên thiết bị này.", "danger");
+    }
+  };
+
+  const handleSearchAddress = async () => {
+    if (!formData.address) {
+      showToast("Vui lòng nhập địa chỉ trước khi tìm kiếm.", "warning");
+      return;
+    }
+    showToast("Đang tự động tìm kiếm tọa độ...", "info");
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.address)}`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+        const mapsUrl = `https://www.google.com/maps?q=${lat.toFixed(6)},${lon.toFixed(6)}`;
+        setFormData((prev) => ({ ...prev, locationUrl: mapsUrl }));
+        if (crmMapRef.current) {
+          crmMapRef.current.setView([lat, lon], 16);
+        }
+        if (crmMarkerRef.current) {
+          crmMarkerRef.current.setLatLng([lat, lon]);
+        }
+        showToast("Đã tìm thấy tọa độ! Bạn có thể kéo thả ghim nếu bị sai xót.", "success");
+      } else {
+        showToast("Không tìm thấy tọa độ cho địa chỉ này trên bản đồ.", "warning");
+      }
+    } catch (err) {
+      showToast("Lỗi kết nối khi tìm kiếm tọa độ.", "danger");
     }
   };
 
@@ -398,8 +442,8 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
 
 
       {/* CRM Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 backdrop-blur-sm">
+      {showModal && createPortal(
+        <div className="fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-[99999] p-0 sm:p-4 backdrop-blur-sm">
           <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-t-2xl sm:rounded-2xl w-full max-w-lg px-4 pt-4 pb-6 max-h-[92vh] overflow-y-auto shadow-2xl">
             <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-3 sm:hidden"></div>
             <h3 className="text-sm font-extrabold text-[var(--text-main)] mb-3">
@@ -455,12 +499,21 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
                 </div>
                 <div>
                   <label className="block text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Địa chỉ</label>
-                  <input
-                    type="text"
-                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-[13px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      className="flex-1 bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-[13px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSearchAddress}
+                      className="px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-all whitespace-nowrap border border-blue-400"
+                    >
+                      🔍 Tìm tọa độ
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -504,12 +557,13 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Invoice Quick Printable Modal */}
-      {showInvoiceModal && (
-        <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      {showInvoiceModal && createPortal(
+        <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-[99999] p-4 backdrop-blur-sm">
           <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl w-full max-w-lg p-6 shadow-2xl">
             <div id="print-invoice-area" className="border-2 border-dashed border-slate-300 rounded-xl p-6 bg-white text-slate-900 font-serif shadow-inner">
               <div className="flex justify-between border-b-2 border-black pb-4">
@@ -559,7 +613,8 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
