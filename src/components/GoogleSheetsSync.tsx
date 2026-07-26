@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Settings } from "../types";
-import { initAuth, googleSignIn, logout } from "../lib/firebaseAuth";
+import { initAuth, googleSignIn, logout, clearToken } from "../lib/firebaseAuth";
 
 interface GoogleSheetsSyncProps {
   settings: Settings;
@@ -28,11 +28,13 @@ export default function GoogleSheetsSync({
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [tokenExpired, setTokenExpired] = useState(false);
 
   useEffect(() => {
     const unsubscribe = initAuth(
       async (firebaseUser, accessToken) => {
         setToken(accessToken);
+        setTokenExpired(false);
         setUser({
           displayName: firebaseUser.displayName || "Huỳnh Bá Long",
           email: firebaseUser.email || "ketoinha76@gmail.com",
@@ -49,10 +51,12 @@ export default function GoogleSheetsSync({
 
   const handleLogin = async () => {
     setIsLoggingIn(true);
+    setTokenExpired(false);
     try {
       const result = await googleSignIn();
       if (result) {
         setToken(result.accessToken);
+        setTokenExpired(false);
         setUser({
           displayName: result.user.displayName || "Huỳnh Bá Long",
           email: result.user.email || "ketoinha76@gmail.com",
@@ -113,7 +117,15 @@ export default function GoogleSheetsSync({
       }
     } catch (err: any) {
       console.error(err);
-      showToast("Lỗi khi xuất Google Sheets: " + (err.message || err), "danger");
+      const msg = err.message || "";
+      if (msg.includes("401") || msg.includes("UNAUTHENTICATED") || msg.includes("invalid authentication")) {
+        clearToken();
+        setToken(null);
+        setTokenExpired(true);
+        showToast("Token Google đã hết hạn (1 giờ). Vui lòng đăng nhập lại để tiếp tục.", "warning");
+      } else {
+        showToast("Lỗi khi xuất Google Sheets: " + msg, "danger");
+      }
     } finally {
       setIsExporting(false);
     }
@@ -152,7 +164,15 @@ export default function GoogleSheetsSync({
       }
     } catch (err: any) {
       console.error(err);
-      showToast("Lỗi khi nhập từ Google Sheets: " + (err.message || err), "danger");
+      const msg = err.message || "";
+      if (msg.includes("401") || msg.includes("UNAUTHENTICATED") || msg.includes("invalid authentication")) {
+        clearToken();
+        setToken(null);
+        setTokenExpired(true);
+        showToast("Token Google đã hết hạn (1 giờ). Vui lòng đăng nhập lại.", "warning");
+      } else {
+        showToast("Lỗi khi nhập từ Google Sheets: " + msg, "danger");
+      }
     } finally {
       setIsImporting(false);
     }
@@ -167,6 +187,24 @@ export default function GoogleSheetsSync({
       <p className="text-xs text-[var(--text-muted)] leading-relaxed mb-4">
         Lưu trữ và đồng bộ hóa toàn bộ cơ sở dữ liệu của bạn (Công việc, Lịch trình, Doanh thu Grab, Khách hàng CRM, Học phí, v.v.) trực tiếp lên Google Sheets của bạn.
       </p>
+
+      {/* Token expired warning banner */}
+      {tokenExpired && user && (
+        <div className="mb-4 p-3.5 bg-amber-500/10 border border-amber-500/40 rounded-xl flex items-start gap-3">
+          <span className="text-xl shrink-0">⚠️</span>
+          <div className="flex-1">
+            <p className="text-xs font-bold text-amber-400 mb-1">Token Google đã hết hạn (sau 1 giờ)</p>
+            <p className="text-[11px] text-[var(--text-muted)] mb-2">Bạn cần đăng nhập lại để lấy token mới. Thao tác rất nhanh — chỉ 1 click!</p>
+            <button
+              onClick={handleLogin}
+              disabled={isLoggingIn}
+              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold rounded-lg cursor-pointer transition-all"
+            >
+              {isLoggingIn ? "⏳ Đang đăng nhập..." : "🔄 Đăng nhập lại ngay"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {!user ? (
         <div className="flex flex-col gap-3">
