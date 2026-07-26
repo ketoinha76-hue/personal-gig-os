@@ -520,7 +520,7 @@ export default function App() {
                     settings={settings}
                     onSaveSettings={handleSaveSettings}
                     apiCall={apiCall}
-                    refreshData={handleRefreshData}
+                    refreshData={loadAllData}
                     showToast={showToast}
                   />
                 </div>
