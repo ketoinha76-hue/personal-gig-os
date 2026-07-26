@@ -321,11 +321,31 @@ async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
 async function importFromGoogleSheets(token: string, spreadsheetId: string) {
   const db = getDB();
   // Support Vietnamese tab names
-  const ranges = [
+  const expectedRanges = [
     "Công việc", "Schedules",
     "Khách hàng", "CRM"
   ];
-  const queryStr = ranges.map(r => `ranges=${encodeURIComponent(r)}!A1:Z1000`).join("&");
+  
+  // Fetch metadata to find which sheets actually exist
+  const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}`;
+  const metaRes = await fetch(metaUrl, {
+    method: "GET",
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+  if (!metaRes.ok) {
+    const errText = await metaRes.text();
+    throw new Error(`Failed to fetch spreadsheet metadata: ${errText}`);
+  }
+  const metaData = await metaRes.json() as any;
+  const actualSheets = (metaData.sheets || []).map((s: any) => s.properties.title);
+  
+  const validRanges = expectedRanges.filter(r => actualSheets.includes(r));
+  if (validRanges.length === 0) {
+    // If none of our expected sheets exist, just return empty success to not crash
+    return { importedTasks: 0, importedCrm: 0 };
+  }
+  
+  const queryStr = validRanges.map(r => `ranges=${encodeURIComponent(r)}!A1:Z1000`).join("&");
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchGet?valueRenderOption=FORMATTED_VALUE&${queryStr}`;
   
   const res = await fetch(url, {
