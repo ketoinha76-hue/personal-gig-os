@@ -51,6 +51,33 @@ export default function App() {
     localStorage.setItem("app_theme", "light");
   }, []);
 
+  // Tự động kéo dữ liệu từ Google Sheets mỗi khi quay lại tab ứng dụng
+  useEffect(() => {
+    let lastSync = 0;
+    const handleFocus = async () => {
+      const now = Date.now();
+      if (now - lastSync < 10000) return; // debounce 10s
+      
+      const token = getPersistedToken();
+      if (token && settings.googleSpreadsheetId) {
+        lastSync = now;
+        try {
+          await apiCall("/api/sync/google-sheets", "POST", {
+            action: "import",
+            token,
+            spreadsheetId: settings.googleSpreadsheetId
+          });
+          await loadAllData();
+        } catch (err) {
+          console.warn("Auto-pull on focus failed:", err);
+        }
+      }
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [settings.googleSpreadsheetId]);
+
+
   // Handle Online/Offline Status and Google Auth on start
   useEffect(() => {
     const handleOnline = () => {
@@ -81,10 +108,17 @@ export default function App() {
 
     // Initial load
     const initLoad = async () => {
-      try {
-        await apiCall("/api/sync/auto-pull", "POST");
-      } catch (err) {
-        console.warn("Auto-pull skipped or failed:", err);
+      const token = getPersistedToken();
+      if (token && settings.googleSpreadsheetId) {
+        try {
+          await apiCall("/api/sync/google-sheets", "POST", {
+            action: "import",
+            token,
+            spreadsheetId: settings.googleSpreadsheetId
+          });
+        } catch (err) {
+          console.warn("Auto-pull on load failed:", err);
+        }
       }
       await loadAllData();
       try {
