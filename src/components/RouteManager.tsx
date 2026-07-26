@@ -228,8 +228,27 @@ export default function RouteManager({
         className: "custom-div-icon",
         html: "<div style='background-color: var(--primary); color: white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; border:2px solid white;'>🏁</div>",
         iconSize: [28, 28]
-      })
+      }),
+      zIndexOffset: 1000
     }).addTo(map).bindPopup("<b>Điểm xuất phát cố định (Tổng kho)</b>");
+
+    // All CRM Contacts Markers
+    crmContacts.forEach(c => {
+      // Don't draw if they are already in the sorted route list to avoid overlap
+      if (sortedRoute.find(pt => pt.id === c.id)) return;
+      
+      const coords = extractCoordinates(c.locationUrl || "");
+      if (coords) {
+        L.marker(coords, {
+          icon: L.divIcon({
+            className: "custom-div-icon",
+            html: "<div style='background-color: #64748b; color: white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; border:1px solid white;'>🏪</div>",
+            iconSize: [20, 20]
+          }),
+          zIndexOffset: 10
+        }).addTo(map).bindPopup(`<b>${c.name}</b><br/><span style='font-size:11px;color:gray'>${c.company}</span><br/>${c.address}`);
+      }
+    });
 
     const pathPoints = [[depotLat, depotLng]];
 
@@ -242,7 +261,8 @@ export default function RouteManager({
           className: "custom-div-icon",
           html: `<div style='background-color: ${bgColor}; color: white; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; border:2px solid white; text-decoration: ${txtDecoration};'>${i + 1}</div>`,
           iconSize: [26, 26]
-        })
+        }),
+        zIndexOffset: 500
       }).addTo(map).bindPopup(`<b>${i + 1}. ${pt.name}</b><br/>${pt.address}`);
       pathPoints.push(pt.coords);
     });
@@ -969,11 +989,11 @@ export default function RouteManager({
                   value={routeFilterGroup}
                   onChange={(e) => setRouteFilterGroup(e.target.value)}
                 >
-                  <option value="All" className="bg-slate-800">Tất cả Sữa</option>
-                  <option value="Khách hàng ngày chẵn" className="bg-slate-800">Ngày chẵn</option>
-                  <option value="Khách hàng ngày lẻ" className="bg-slate-800">Ngày lẻ</option>
-                  <option value="Nhà riêng" className="bg-slate-800">Nhà riêng (Yakult)</option>
-                  <option value="Đại lý" className="bg-slate-800">Đại lý (Yakult)</option>
+                  <option value="All" className="bg-slate-800 text-white">Tất cả Sữa</option>
+                  <option value="Khách hàng ngày chẵn" className="bg-slate-800 text-white">Ngày chẵn</option>
+                  <option value="Khách hàng ngày lẻ" className="bg-slate-800 text-white">Ngày lẻ</option>
+                  <option value="Nhà riêng" className="bg-slate-800 text-white">Nhà riêng (Yakult)</option>
+                  <option value="Đại lý" className="bg-slate-800 text-white">Đại lý (Yakult)</option>
                 </select>
               </div>
               
