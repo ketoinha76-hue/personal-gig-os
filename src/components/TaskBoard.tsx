@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { Task, Project } from "../types";
 
 interface TaskBoardProps {
-  tasks: Task[];
-  projects: Project[];
+  schedules?: any[];
+  crmContacts?: any[];
   onSave: (task: any) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onUpdateStatus: (id: string, status: string) => Promise<void>;
@@ -25,15 +25,16 @@ export default function TaskBoard({
   const [activeTab, setActiveSubTab] = useState<"kanban" | "grab">("kanban");
   
   // --- Kanban States ---
-  const [selectedProjectFilter, setSelectedProjectFilter] = useState("p-1");
   const [showModal, setShowModal] = useState(false);
-  const [editItem, setEditItem] = useState<Task | null>(null);
+  const [editItem, setEditItem] = useState<any | null>(null);
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    projectId: "p-1",
-    priority: "Cao",
-    status: "Cần làm"
+    taskTypes: [] as string[],
+    customerId: "",
+    address: "",
+    dayOfWeek: 2,
+    startTime: "08:00",
+    endTime: "09:00",
+    color: "blue"
   });
 
   // --- Grab Accounting States ---
@@ -74,40 +75,83 @@ export default function TaskBoard({
   const [showWalletModal, setShowWalletModal] = useState(false);
   const [tempWalletBalance, setTempWalletBalance] = useState("");
 
-  // --- Kanban Handlers ---
+  // --- Schedule Handlers ---
   const handleOpenAdd = () => {
     setEditItem(null);
     setFormData({
-      title: "",
-      description: "",
-      projectId: projects[0]?.id || "p-1",
-      priority: "Cao",
-      status: "Cần làm"
+      taskTypes: [],
+      customerId: "",
+      address: "",
+      dayOfWeek: 2,
+      startTime: "08:00",
+      endTime: "10:00",
+      color: "blue"
     });
     setShowModal(true);
   };
 
-  const handleOpenEdit = (item: Task) => {
+  const handleOpenEdit = (item: any) => {
     setEditItem(item);
+    
+    // Parse title to extract taskTypes and customerId (best effort)
+    let types: string[] = [];
+    if (item.title && item.title.startsWith("[")) {
+       const match = item.title.match(/\[(.*?)\]/);
+       if (match) types = match[1].split(", ").filter(Boolean);
+    }
+    
     setFormData({
-      title: item.title,
-      description: item.description,
-      projectId: item.projectId,
-      priority: item.priority,
-      status: item.status
+      taskTypes: types,
+      customerId: "",
+      address: item.address || "",
+      dayOfWeek: item.dayOfWeek || 2,
+      startTime: item.startTime || "08:00",
+      endTime: item.endTime || "10:00",
+      color: item.color || "blue"
     });
     setShowModal(true);
+  };
+
+  const handleCustomerChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const cid = e.target.value;
+    const crm = crmContacts?.find((c: any) => c.id === cid);
+    setFormData(prev => ({
+      ...prev,
+      customerId: cid,
+      address: crm ? `${crm.address} ${crm.locationUrl ? '(' + crm.locationUrl + ')' : ''}` : prev.address
+    }));
+  };
+
+  const toggleTaskType = (type: string) => {
+    setFormData(prev => {
+      if (prev.taskTypes.includes(type)) {
+        return { ...prev, taskTypes: prev.taskTypes.filter(t => t !== type) };
+      } else {
+        return { ...prev, taskTypes: [...prev.taskTypes, type] };
+      }
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title) {
-      showToast("Vui lòng điền tiêu đề công việc.", "warning");
+    if (formData.taskTypes.length === 0) {
+      showToast("Vui lòng chọn ít nhất một loại công việc.", "warning");
       return;
     }
+    
+    const crm = crmContacts?.find((c: any) => c.id === formData.customerId);
+    const title = `[${formData.taskTypes.join(", ")}] ${crm ? crm.name : "Khách lẻ"}`;
+    
     const payload = {
       ...editItem,
-      ...formData
+      title,
+      description: "",
+      dayOfWeek: Number(formData.dayOfWeek),
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      color: formData.color,
+      address: formData.address,
+      completed: editItem ? editItem.completed : false
     };
     await onSave(payload);
     setShowModal(false);
@@ -247,91 +291,54 @@ export default function TaskBoard({
     }
   };
 
-  const columns = ["Cần làm", "Đang thực hiện", "Hoàn thành"];
+  
 
   return (
     <div>
 
       {activeTab === "kanban" ? (
-        <div>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-extrabold text-[var(--text-main)]">Quản lý Công việc</h2>
+        <div className="flex flex-col gap-6 animate-fadeIn">
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-xl font-extrabold text-[var(--text-main)]">Lịch trình Công việc</h2>
             <button
               onClick={handleOpenAdd}
               className="flex items-center gap-2 px-4 py-2.5 bg-[var(--primary)] text-white text-xs font-bold rounded-xl cursor-pointer hover:bg-[var(--primary-hover)] transition-all shadow-sm"
             >
-              + Tạo công việc mới
+              + Tạo lịch trình mới
             </button>
           </div>
-
-
-
-          {/* Kanban Board Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
-            {columns.map((col) => {
-              const colTasks = tasks.filter((t) => {
-                const isMatchProj = selectedProjectFilter === "all" || t.projectId === selectedProjectFilter;
-                return isMatchProj && t.status === col;
-              });
-
-              return (
-                <div key={col} className="bg-[var(--overlay-01)] border border-dashed border-[var(--border-color)] rounded-2xl p-4">
-                  <div className="flex justify-between items-center text-xs font-bold text-[var(--text-muted)] uppercase mb-4 tracking-wider">
-                    <span>{col}</span>
-                    <span className="px-2 py-0.5 bg-[var(--overlay-03)] rounded-full text-[10px] text-[var(--text-main)]">{colTasks.length}</span>
-                  </div>
-
-                  <div className="flex flex-col gap-3 min-h-[300px]">
-                    {colTasks.map((t) => (
-                      <div key={t.id} className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-4 shadow-sm hover:border-[rgba(99,102,241,0.2)] hover:-translate-y-0.5 transition-all">
-                        <div className="flex justify-between items-start gap-2">
-                          <h4 className="font-bold text-[13.5px] text-[var(--text-main)] leading-snug">{t.title}</h4>
-                          <div className="flex gap-2 shrink-0">
-                            <button
-                              onClick={() => handleOpenEdit(t)}
-                              className="text-xs text-[var(--text-muted)] hover:text-[var(--primary)] cursor-pointer"
-                              title="Sửa"
-                            >
-                              ✏️
-                            </button>
-                            <button
-                              onClick={() => onDelete(t.id)}
-                              className="text-xs text-rose-500 hover:text-rose-700 cursor-pointer"
-                              title="Xóa"
-                            >
-                              🗑️
-                            </button>
-                          </div>
-                        </div>
-                        
-                        <p className="text-xs text-[var(--text-muted)] mt-2 mb-4 leading-relaxed line-clamp-3">{t.description}</p>
-                        
-                        <div className="flex justify-between items-center">
-                          <select
-                            value={t.status}
-                            onChange={(e) => onUpdateStatus(t.id, e.target.value)}
-                            className="bg-black/20 border border-[var(--border-color)] text-[11px] rounded-md px-2 py-1 cursor-pointer focus:outline-none focus:border-[var(--primary)] text-[var(--text-main)]"
-                          >
-                            <option value="Cần làm" className="bg-slate-800 text-white">Cần làm</option>
-                            <option value="Đang thực hiện" className="bg-slate-800 text-white">Đang thực hiện</option>
-                            <option value="Hoàn thành" className="bg-slate-800 text-white">Hoàn thành</option>
-                          </select>
-                          <span className="text-[11px] font-bold text-[var(--primary)]">
-                            {projects.find((p) => p.id === t.projectId)?.name || "Khác"}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-
-                    {colTasks.length === 0 && (
-                      <div className="flex items-center justify-center h-20 text-[11px] text-[var(--text-muted)] font-medium italic">
-                        Trống
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+          
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm overflow-x-auto">
+             <table className="w-full text-left border-collapse min-w-[700px]">
+               <thead>
+                 <tr className="border-b border-[var(--border-color)] text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                   <th className="py-3 px-4">Công việc</th>
+                   <th className="py-3 px-4">Thứ</th>
+                   <th className="py-3 px-4">Thời gian</th>
+                   <th className="py-3 px-4">Địa chỉ</th>
+                   <th className="py-3 px-4 w-24 text-center">Thao tác</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 {schedules?.map(s => (
+                   <tr key={s.id} className="border-b border-[var(--border-color)]/50 hover:bg-white/[0.01]">
+                     <td className="py-3 px-4 text-sm font-extrabold text-[var(--text-main)]">{s.title}</td>
+                     <td className="py-3 px-4 text-sm text-[var(--text-main)]">
+                       {s.dayOfWeek === 1 ? 'Chủ nhật' : `Thứ ${s.dayOfWeek}`}
+                     </td>
+                     <td className="py-3 px-4 text-xs font-mono text-[var(--text-muted)]">{s.startTime} - {s.endTime}</td>
+                     <td className="py-3 px-4 text-xs text-[var(--text-muted)] truncate max-w-[200px]">{s.address}</td>
+                     <td className="py-3 px-4 text-center flex justify-center gap-2">
+                        <button onClick={() => handleOpenEdit(s)} className="text-xs hover:text-[var(--primary)] cursor-pointer" title="Sửa">✏️</button>
+                        <button onClick={() => onDelete(s.id)} className="text-xs text-rose-500 hover:text-rose-700 cursor-pointer" title="Xóa">🗑️</button>
+                     </td>
+                   </tr>
+                 ))}
+                 {schedules?.length === 0 && (
+                   <tr><td colSpan={5} className="py-8 text-center text-xs text-[var(--text-muted)] italic">Chưa có công việc nào</td></tr>
+                 )}
+               </tbody>
+             </table>
           </div>
         </div>
       ) : (
@@ -556,48 +563,112 @@ export default function TaskBoard({
         </div>
       )}
 
-      {/* Task Form Modal */}
+      {/* Schedule Form Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
           <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <h3 className="text-base font-extrabold text-[var(--text-main)] mb-5">
-              {editItem ? "Chỉnh sửa Công việc" : "Tạo Công việc mới"}
+            <h3 className="text-base font-extrabold text-[var(--text-main)] mb-5 border-b border-[var(--border-color)] pb-3">
+              {editItem ? "Chỉnh sửa Lịch trình" : "Tạo Lịch trình mới"}
             </h3>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div>
-                <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Tiêu đề công việc *</label>
-                <input
-                  type="text"
-                  required
-                  className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                />
+                <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Loại công việc *</label>
+                <div className="flex flex-wrap gap-2">
+                  {["Giao hàng", "Bán hàng", "Bảo hành", "Lắp đặt", "Khác"].map(type => (
+                    <label key={type} className="flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-lg border border-[var(--border-color)] cursor-pointer hover:bg-black/40">
+                      <input 
+                        type="checkbox" 
+                        checked={formData.taskTypes.includes(type)}
+                        onChange={() => toggleTaskType(type)}
+                        className="accent-[var(--primary)]"
+                      />
+                      <span className="text-xs text-[var(--text-main)]">{type}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
 
               <div>
-                <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Mô tả chi tiết</label>
-                <textarea
-                  rows={3}
-                  className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)] resize-none"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Liên kết công việc / dự án</label>
+                <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Chọn Khách hàng</label>
                 <select
                   className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-                  value={formData.projectId}
-                  onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
+                  value={formData.customerId}
+                  onChange={handleCustomerChange}
                 >
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id} className="bg-slate-800 text-white">
-                      {p.name}
+                  <option value="">-- Chọn khách hàng --</option>
+                  {crmContacts?.map((c: any) => (
+                    <option key={c.id} value={c.id} className="bg-slate-800 text-white">
+                      {c.name} - {c.phone || c.company}
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Địa chỉ / Bản đồ</label>
+                <textarea
+                  rows={2}
+                  className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)] resize-none"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  placeholder="Sẽ tự động điền khi chọn khách hàng..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Thứ trong tuần *</label>
+                  <select
+                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+                    value={formData.dayOfWeek}
+                    onChange={(e) => setFormData({ ...formData, dayOfWeek: Number(e.target.value) })}
+                  >
+                    <option value={2} className="bg-slate-800 text-white">Thứ 2</option>
+                    <option value={3} className="bg-slate-800 text-white">Thứ 3</option>
+                    <option value={4} className="bg-slate-800 text-white">Thứ 4</option>
+                    <option value={5} className="bg-slate-800 text-white">Thứ 5</option>
+                    <option value={6} className="bg-slate-800 text-white">Thứ 6</option>
+                    <option value={7} className="bg-slate-800 text-white">Thứ 7</option>
+                    <option value={1} className="bg-slate-800 text-white">Chủ nhật</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Màu sắc</label>
+                  <select
+                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+                    value={formData.color}
+                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                  >
+                    <option value="blue" className="bg-slate-800 text-white">Xanh dương</option>
+                    <option value="emerald" className="bg-slate-800 text-white">Xanh lá</option>
+                    <option value="rose" className="bg-slate-800 text-white">Đỏ</option>
+                    <option value="amber" className="bg-slate-800 text-white">Vàng</option>
+                    <option value="purple" className="bg-slate-800 text-white">Tím</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Giờ bắt đầu *</label>
+                  <input
+                    type="time"
+                    required
+                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+                    value={formData.startTime}
+                    onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Giờ kết thúc *</label>
+                  <input
+                    type="time"
+                    required
+                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+                    value={formData.endTime}
+                    onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                  />
+                </div>
               </div>
 
               <div className="flex gap-3 justify-end mt-4">
@@ -619,7 +690,6 @@ export default function TaskBoard({
           </div>
         </div>
       )}
-
       {/* Grab Wallet Edit Modal */}
       {showWalletModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">

@@ -243,10 +243,10 @@ export default function App() {
   const onSaveTask = async (task: any) => {
     try {
       if (task.id) {
-        await apiCall(`/api/tasks/${task.id}`, "PUT", task);
+        await apiCall(`/api/schedules/${task.id}`, "PUT", task);
         showToast("Đã cập nhật công việc!");
       } else {
-        await apiCall("/api/tasks", "POST", task);
+        await apiCall("/api/schedules", "POST", task);
         showToast("Đã tạo công việc mới!");
       }
       loadAllData(true);
@@ -258,7 +258,7 @@ export default function App() {
   const onDeleteTask = async (id: string) => {
     if (confirm("Bạn có chắc chắn muốn xóa công việc này?")) {
       try {
-        await apiCall(`/api/tasks/${id}`, "DELETE");
+        await apiCall(`/api/schedules/${id}`, "DELETE");
         showToast("Đã xóa công việc.");
         loadAllData(true);
       } catch (err: any) {
@@ -409,11 +409,10 @@ export default function App() {
 
               {activeTab === "tasks" && (
                 <TaskBoard
-                  tasks={tasks}
-                  projects={projects}
+                  schedules={schedules}
+                  crmContacts={crmContacts}
                   onSave={onSaveTask}
                   onDelete={onDeleteTask}
-                  onUpdateStatus={onUpdateTaskStatus}
                   showToast={showToast}
                   apiCall={apiCall}
                   refreshData={loadAllData}

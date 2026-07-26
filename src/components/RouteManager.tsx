@@ -688,20 +688,11 @@ export default function RouteManager({
                 <div>
                   <h3 className="text-sm font-extrabold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-2 flex-wrap">
                     <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />
-                    Ma trận Lịch trình công việc đa nhiệm ({getWeekRangeString()})
+                    Lịch trình công việc đa nhiệm (Cố định hàng tuần)
                   </h3>
                   <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
-                    Phân bổ thời gian biểu hàng giờ từ Thứ 2 đến Chủ Nhật. Nhấp vào lịch trình để cập nhật hoặc xóa.
+                    Phân bổ thời gian biểu hàng giờ từ Thứ 2 đến Chủ Nhật.
                   </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleOpenAddModal}
-                    className="px-3.5 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-xs font-bold rounded-lg cursor-pointer transition-all flex items-center gap-1.5"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    Thêm Lịch trình
-                  </button>
                 </div>
               </div>
 
@@ -722,7 +713,6 @@ export default function RouteManager({
                           >
                             <div className="flex flex-col items-center justify-center">
                               <span className="font-extrabold text-[12px]">{day.label}</span>
-                              <span className="text-[10px] text-[var(--text-muted)] font-mono mt-0.5">({getWeekDayDate(day.value)})</span>
                               {isToday && <span className="text-[9px] text-[var(--primary)] lowercase tracking-normal mt-0.5 font-bold">(hôm nay)</span>}
                             </div>
                           </th>
@@ -760,8 +750,7 @@ export default function RouteManager({
                                   {cellSchedules.map((s) => (
                                     <div
                                       key={s.id}
-                                      onClick={() => handleOpenEditModal(s)}
-                                      className={`group p-2 rounded-xl border text-[11.5px] leading-tight cursor-pointer transition-all shadow-sm ${getColorClasses(s.color)} ${
+                                      className={`group p-2 rounded-xl border text-[11.5px] leading-tight transition-all shadow-sm ${getColorClasses(s.color)} ${
                                         s.completed ? "opacity-45 line-through decoration-[var(--text-muted)] border-slate-700" : ""
                                       }`}
                                       title={`${s.title}\n⏰ ${s.startTime} - ${s.endTime}\n📌 Địa chỉ: ${s.address || "N/A"}`}

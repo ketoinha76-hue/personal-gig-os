@@ -471,7 +471,7 @@ app.put("/api/settings", (req, res) => {
 // Google Sheets Sync Functions & API Endpoints
 async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
   const db = getDB();
-  const sheetsToCreate = ["Công việc", "Lịch làm việc", "Khách hàng"];
+  const sheetsToCreate = ["Công việc", "Khách hàng"];
   let targetSpreadsheetId = spreadsheetId;
   
   if (!targetSpreadsheetId) {
@@ -499,17 +499,6 @@ async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
   }
   
   // 1. Prepare values for each tab
-  const taskRows = [
-    ["ID", "Tiêu đề", "Mô tả", "Mức ưu tiên", "Trạng thái", "Dự án ID", "Thời gian ước tính", "Thời gian thực", "Ngày tạo"]
-  ];
-  db.tasks.forEach((t: any) => {
-    taskRows.push([
-      t.id || "", t.title || "", t.description || "", t.priority || "", 
-      t.status || "", t.projectId || "", String(t.estimateTime || 0), 
-      String(t.actualTime || 0), t.createdAt || ""
-    ]);
-  });
-  
   const scheduleRows = [
     ["ID", "Tiêu đề", "Mô tả", "Ngày trong tuần", "Giờ bắt đầu", "Giờ kết thúc", "Màu sắc", "Hoàn thành", "Địa chỉ"]
   ];
@@ -531,8 +520,7 @@ async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
   });
   
   const dataPayload = [
-    { range: "Công việc!A1", values: taskRows },
-    { range: "Lịch làm việc!A1", values: scheduleRows },
+    { range: "Công việc!A1", values: scheduleRows },
     { range: "Khách hàng!A1", values: crmRows }
   ];
   
@@ -567,8 +555,7 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
   const db = getDB();
   // Support Vietnamese tab names
   const ranges = [
-    "Công việc", "Tasks",
-    "Lịch làm việc", "Lịch học", "Schedules",
+    "Công việc", "Schedules",
     "Khách hàng", "CRM"
   ];
   const queryStr = ranges.map(r => `ranges=${encodeURIComponent(r)}!A1:Z1000`).join("&");
@@ -596,19 +583,7 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
     
     const rows = values.slice(1);
     
-    if (rangeName.startsWith("tasks") || rangeName.startsWith("công việc")) {
-      db.tasks = rows.map((row: any) => ({
-        id: row[0] || "",
-        title: row[1] || "",
-        description: row[2] || "",
-        priority: row[3] || "Trung bình",
-        status: row[4] || "Cần làm",
-        projectId: row[5] || "",
-        estimateTime: Number(row[6]) || 0,
-        actualTime: Number(row[7]) || 0,
-        createdAt: row[8] || new Date().toISOString()
-      }));
-    } else if (rangeName.startsWith("schedules") || rangeName.startsWith("lịch làm việc") || rangeName.startsWith("lịch học")) {
+    if (rangeName.startsWith("schedules") || rangeName.startsWith("công việc")) {
       db.schedules = rows.map((row: any) => ({
         id: row[0] || "",
         title: row[1] || "",
