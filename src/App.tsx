@@ -68,8 +68,11 @@ export default function App() {
             spreadsheetId: settings.googleSpreadsheetId
           });
           await loadAllData();
-        } catch (err) {
+        } catch (err: any) {
           console.warn("Auto-pull on focus failed:", err);
+          if (err.message?.includes("Failed to fetch") || err.message?.includes("401") || err.message?.includes("token")) {
+             showToast("Phiên Google hết hạn, vui lòng Đăng nhập lại ở Cấu hình hệ thống!", "warning");
+          }
         }
       }
     };
@@ -116,8 +119,11 @@ export default function App() {
             token,
             spreadsheetId: settings.googleSpreadsheetId
           });
-        } catch (err) {
+        } catch (err: any) {
           console.warn("Auto-pull on load failed:", err);
+          if (err.message?.includes("Failed to fetch") || err.message?.includes("401") || err.message?.includes("token")) {
+             showToast("Phiên Google hết hạn, vui lòng Đăng nhập lại ở Cấu hình hệ thống để tải dữ liệu!", "warning");
+          }
         }
       }
       await loadAllData();
@@ -351,25 +357,37 @@ export default function App() {
           displayName: res.user.displayName || "Huỳnh Bá Long",
           email: res.user.email || "ketoinha76@gmail.com"
         });
-        showToast("Đăng nhập thành công! Đang tự động khởi tạo file Google Sheets mới...", "info");
         
-        const createRes = await apiCall("/api/sync/google-sheets", "POST", {
-          action: "export",
-          token: res.accessToken
-        });
-        
-        if (createRes && createRes.spreadsheetId) {
-          const updatedSettings = {
-            ...settings,
-            googleSpreadsheetId: createRes.spreadsheetId,
-            googleSpreadsheetUrl: createRes.spreadsheetUrl
-          };
-          await apiCall("/api/settings", "PUT", updatedSettings);
-          setSettings(updatedSettings);
-          showToast("Đã khởi tạo và liên kết File Google Sheets mới thành công!", "success");
+        if (settings.googleSpreadsheetId) {
+          showToast("Đăng nhập thành công! Đang tự động đồng bộ dữ liệu...", "info");
+          await apiCall("/api/sync/google-sheets", "POST", {
+            action: "import",
+            token: res.accessToken,
+            spreadsheetId: settings.googleSpreadsheetId
+          });
           await loadAllData();
+          showToast("Đồng bộ dữ liệu từ Google Sheets thành công!", "success");
         } else {
-          throw new Error("Không thể khởi tạo file Google Sheets.");
+          showToast("Đăng nhập thành công! Đang tự động khởi tạo file Google Sheets mới...", "info");
+          
+          const createRes = await apiCall("/api/sync/google-sheets", "POST", {
+            action: "export",
+            token: res.accessToken
+          });
+          
+          if (createRes && createRes.spreadsheetId) {
+            const updatedSettings = {
+              ...settings,
+              googleSpreadsheetId: createRes.spreadsheetId,
+              googleSpreadsheetUrl: createRes.spreadsheetUrl
+            };
+            await apiCall("/api/settings", "PUT", updatedSettings);
+            setSettings(updatedSettings);
+            showToast("Đã khởi tạo và liên kết File Google Sheets mới thành công!", "success");
+            await loadAllData();
+          } else {
+            throw new Error("Không thể khởi tạo file Google Sheets.");
+          }
         }
       }
     } catch (err: any) {
