@@ -45,19 +45,7 @@ export default function SettingsPanel({
             />
           </div>
 
-          {/* Depot Coords */}
-          <div>
-            <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
-              Tọa độ xuất phát cố định (nhà riêng/Yakult)
-            </label>
-            <input
-              type="text"
-              placeholder="Vĩ độ, Kinh độ"
-              className="w-full bg-black/10 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-              value={formData.depotCoords}
-              onChange={(e) => setFormData({ ...formData, depotCoords: e.target.value })}
-            />
-          </div>
+
 
           {/* Google Spreadsheet ID */}
           <div>

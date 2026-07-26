@@ -57,6 +57,7 @@ export default function RouteManager({
 
   const [routeSearchTerm, setRouteSearchTerm] = useState("");
   const [routeFilterGroup, setRouteFilterGroup] = useState("All");
+  const [startChoice, setStartChoice] = useState<"yakult" | "me">("yakult");
 
   const [isTracking, setIsTracking] = useState(false);
   const [trackingStartTime, setTrackingStartTime] = useState<number | null>(null);
@@ -568,11 +569,20 @@ export default function RouteManager({
 
     let depotLat = 10.8087727;
     let depotLng = 106.9241267;
-    const extractedStart = extractCoordinates(depotCoords);
-    if (extractedStart) {
-      depotLat = extractedStart[0];
-      depotLng = extractedStart[1];
+    
+    if (startChoice === "me") {
+      if (!userLocation) {
+        showToast("Chưa có tín hiệu GPS. Vui lòng bật định vị hoặc chờ giây lát.", "warning");
+        return;
+      }
+      depotLat = userLocation[0];
+      depotLng = userLocation[1];
+    } else {
+      // Cửa hàng Yakult Tam An
+      depotLat = 10.8087727;
+      depotLng = 106.9241267;
     }
+    
     drawOptimizedMap(depotLat, depotLng, updated);
   };
 
@@ -1066,51 +1076,16 @@ export default function RouteManager({
             <div>
               <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Tọa độ xuất phát</label>
               <div className="flex gap-2">
-                <input
-                  type="text"
+                <select
                   className="flex-1 bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-                  value={depotCoords}
-                  onChange={(e) => setDepotCoords(e.target.value)}
-                  placeholder="Dán link Google Maps hoặc Vĩ độ, Kinh độ"
-                />
-                <button
-                  onClick={() => {
-                    if (!navigator.geolocation) {
-                      showToast("Trình duyệt không hỗ trợ GPS.", "warning");
-                      return;
-                    }
-                    setIsGettingGpsStart(true);
-                    navigator.geolocation.getCurrentPosition(
-                      (pos) => {
-                        const { latitude, longitude } = pos.coords;
-                        const coordStr = `${latitude.toFixed(6)},${longitude.toFixed(6)}`;
-                        setDepotCoords(coordStr);
-                        setIsGettingGpsStart(false);
-                        showToast(`📍 Đã lấy vị trí GPS: ${coordStr}`, "success");
-                        if (routeMapRef.current) {
-                          routeMapRef.current.setView([latitude, longitude], 16);
-                        }
-                      },
-                      (err) => {
-                        setIsGettingGpsStart(false);
-                        showToast("Không lấy được vị trí GPS. Hãy bật định vị.", "danger");
-                      },
-                      { enableHighAccuracy: true, timeout: 10000 }
-                    );
-                  }}
-                  disabled={isGettingGpsStart}
-                  className="shrink-0 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg cursor-pointer transition-all flex items-center gap-1.5 border border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Lấy vị trí GPS hiện tại làm điểm xuất phát"
+                  value={startChoice}
+                  onChange={(e) => setStartChoice(e.target.value as "yakult" | "me")}
                 >
-                  {isGettingGpsStart ? (
-                    <span className="animate-pulse">⏳</span>
-                  ) : (
-                    <span>📍</span>
-                  )}
-                  {isGettingGpsStart ? "Đang lấy..." : "Vị trí của tôi"}
-                </button>
+                  <option value="yakult" className="bg-slate-800 text-white">🏢 Cửa hàng Yakult Tam An</option>
+                  <option value="me" className="bg-slate-800 text-white">📍 Vị trí của tôi (GPS)</option>
+                </select>
               </div>
-              {userLocation && (
+              {startChoice === "me" && userLocation && (
                 <p className="text-[10.5px] text-blue-400 mt-1 flex items-center gap-1">
                   🔵 GPS đang hoạt động · {userLocation[0].toFixed(5)}, {userLocation[1].toFixed(5)}
                 </p>
