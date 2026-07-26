@@ -701,8 +701,7 @@ export default function RouteManager({
     { value: 3, label: "Thứ 4" },
     { value: 4, label: "Thứ 5" },
     { value: 5, label: "Thứ 6" },
-    { value: 6, label: "Thứ 7" },
-    { value: 7, label: "Chủ Nhật" }
+    { value: 6, label: "Thứ 7" }
   ];
 
   const getColorClasses = (color: string) => {
@@ -737,18 +736,18 @@ export default function RouteManager({
     return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
   };
 
-  // Get full start and end date range of the current week
+  // Get full start and end date range of the current week (Mon-Sat)
   const getWeekRangeString = () => {
     const monday = new Date(today);
-    const sunday = new Date(today);
+    const saturday = new Date(today);
     const day = today.getDay();
     const currentDay = day === 0 ? 7 : day;
     
     monday.setDate(today.getDate() - (currentDay - 1));
-    sunday.setDate(today.getDate() + (7 - currentDay));
+    saturday.setDate(today.getDate() + (6 - currentDay));
     
     const format = (d: Date) => d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
-    return `Tuần từ ${format(monday)} đến ${format(sunday)}`;
+    return `Tuần từ ${format(monday)} đến ${format(saturday)}`;
   };
 
   // Filter schedules for today list
@@ -823,7 +822,7 @@ export default function RouteManager({
                     Lịch trình công việc đa nhiệm (Cố định hàng tuần)
                   </h3>
                   <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
-                    Phân bổ thời gian biểu hàng giờ từ Thứ 2 đến Chủ Nhật.
+                    Phân bổ thời gian biểu hàng giờ từ Thứ 2 đến Thứ 7.
                   </p>
                 </div>
               </div>
