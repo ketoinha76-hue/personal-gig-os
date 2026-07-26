@@ -12,7 +12,8 @@ import {
   AlertCircle, 
   Sparkles,
   ChevronRight,
-  ListTodo
+  ListTodo,
+  Compass
 } from "lucide-react";
 
 interface RouteManagerProps {
@@ -51,6 +52,8 @@ export default function RouteManager({
   const [selectedCrmRouteIds, setSelectedCrmRouteIds] = useState<string[]>([]);
   const [optimizedRoutePath, setOptimizedRoutePath] = useState<any[]>([]);
   const routeMapRef = useRef<any>(null);
+  const userMarkerRef = useRef<any>(null);
+  const watchIdRef = useRef<number | null>(null);
 
   const [routeSearchTerm, setRouteSearchTerm] = useState("");
   const [routeFilterGroup, setRouteFilterGroup] = useState("All");
@@ -65,6 +68,12 @@ export default function RouteManager({
   // Travel Log State
   const [mapTab, setMapTab] = useState<"route" | "log">("route");
   const [routeLogs, setRouteLogs] = useState<RouteLog[]>([]);
+
+  // GPS Tracking States
+  const [isGpsActive, setIsGpsActive] = useState(false);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [userHeading, setUserHeading] = useState<number>(0);
+
 
   // Load from localStorage ONCE on mount
   const [isLoaded, setIsLoaded] = useState(false);
@@ -102,6 +111,82 @@ export default function RouteManager({
       completedRouteDetails
     }));
   }, [isLoaded, selectedCrmRouteIds, optimizedRoutePath, isTracking, trackingStartTime, trackingDistance, lastCheckTime, completedRouteDetails]);
+
+  // --- Real-time GPS & Compass Tracking ---
+  useEffect(() => {
+    if (!isGpsActive) {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+      const L = (window as any).L;
+      window.removeEventListener("deviceorientation", handleOrientation as EventListener);
+      if (userMarkerRef.current && routeMapRef.current && L) {
+        routeMapRef.current.removeLayer(userMarkerRef.current);
+        userMarkerRef.current = null;
+      }
+      return;
+    }
+
+    const L = (window as any).L;
+    if (!L) return;
+
+    const handleOrientation = (e: any) => {
+      let compassHeading = 0;
+      if (e.webkitCompassHeading) {
+        compassHeading = e.webkitCompassHeading;
+      } else if (e.alpha !== null) {
+        compassHeading = 360 - e.alpha; // approximate
+      }
+      setUserHeading(compassHeading);
+
+      if (userMarkerRef.current) {
+        const iconElement = userMarkerRef.current.getElement();
+        if (iconElement) {
+          const arrow = iconElement.querySelector(".gps-arrow");
+          if (arrow) arrow.style.transform = `rotate(${compassHeading}deg)`;
+        }
+      }
+    };
+
+    window.addEventListener("deviceorientation", handleOrientation as EventListener, true);
+
+    if (navigator.geolocation) {
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setUserLocation([latitude, longitude]);
+
+          if (routeMapRef.current) {
+            if (!userMarkerRef.current) {
+              userMarkerRef.current = L.marker([latitude, longitude], {
+                icon: L.divIcon({
+                  className: "custom-div-icon",
+                  html: `<div class="gps-arrow" style="width: 28px; height: 28px; background: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%233b82f6%22 stroke=%22white%22 stroke-width=%222%22><path d=%22M12 2L2 22l10-4 10 4L12 2z%22/></svg>') no-repeat center center; background-size: contain; transition: transform 0.2s ease-out; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transform-origin: center center;"></div>`,
+                  iconSize: [28, 28],
+                  iconAnchor: [14, 14]
+                }),
+                zIndexOffset: 2000
+              }).addTo(routeMapRef.current);
+              routeMapRef.current.setView([latitude, longitude], 16);
+            } else {
+              userMarkerRef.current.setLatLng([latitude, longitude]);
+            }
+          }
+        },
+        (err) => {
+          console.warn("Lỗi GPS:", err.message);
+          showToast("Không thể lấy vị trí GPS. Hãy bật định vị.", "warning");
+        },
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+      );
+    }
+
+    return () => {
+      if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
+      window.removeEventListener("deviceorientation", handleOrientation as EventListener);
+    };
+  }, [isGpsActive]);
 
   const fetchRouteLogs = async () => {
     try {
@@ -1115,7 +1200,20 @@ export default function RouteManager({
           {/* Map Column */}
           <div className="lg:col-span-7 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-sm">
             <h3 className="text-sm font-extrabold text-[var(--text-main)] uppercase tracking-wider mb-4">🗺️ Bản đồ lộ trình di chuyển</h3>
-            <div id="route-map" className="h-[450px] w-full rounded-xl border border-[var(--border-color)] z-10"></div>
+            <div id="route-map" className="h-[450px] w-full rounded-xl border border-[var(--border-color)] z-10 relative">
+              <button
+                onClick={() => {
+                  if (typeof (window as any).DeviceOrientationEvent !== 'undefined' && typeof (window as any).DeviceOrientationEvent.requestPermission === 'function' && !isGpsActive) {
+                    (window as any).DeviceOrientationEvent.requestPermission().catch(console.error);
+                  }
+                  setIsGpsActive(!isGpsActive);
+                }}
+                className={`absolute bottom-6 right-4 z-[1000] p-3 rounded-full shadow-lg border-2 transition-all cursor-pointer ${isGpsActive ? 'bg-blue-500 border-blue-400 text-white animate-pulse' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                title="Bật/Tắt định vị của tôi"
+              >
+                <Compass className="w-6 h-6" />
+              </button>
+            </div>
           </div>
 
             </div>
