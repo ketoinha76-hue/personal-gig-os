@@ -26,102 +26,59 @@ export default function SettingsPanel({
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-xl font-extrabold text-[var(--text-main)]">Cấu hình & Tích hợp Telegram</h2>
+        <h2 className="text-xl font-extrabold text-[var(--text-main)]">⚙️ Cấu hình Hệ thống</h2>
+        <p className="text-xs text-[var(--text-muted)] mt-1">Thiết lập tên không gian làm việc, tọa độ xuất phát và kết nối Google Sheets.</p>
       </div>
 
       <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-sm max-w-xl">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          {/* Workspace Name */}
           <div>
-            <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Tên không gian làm việc</label>
+            <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
+              Tên không gian làm việc
+            </label>
             <input
               type="text"
-              className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+              className="w-full bg-black/10 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
               value={formData.companyName}
               onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
             />
           </div>
 
+          {/* Depot Coords */}
           <div>
-            <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Tọa độ xuất phát cố định (nhà riêng/Yakult)</label>
+            <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
+              Tọa độ xuất phát cố định (nhà riêng/Yakult)
+            </label>
             <input
               type="text"
               placeholder="Vĩ độ, Kinh độ"
-              className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+              className="w-full bg-black/10 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
               value={formData.depotCoords}
               onChange={(e) => setFormData({ ...formData, depotCoords: e.target.value })}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Telegram Bot Token</label>
-              <input
-                type="text"
-                className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-                value={formData.telegramBotToken}
-                onChange={(e) => setFormData({ ...formData, telegramBotToken: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Telegram Chat ID cá nhân</label>
-              <input
-                type="text"
-                className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-                value={formData.telegramChatId}
-                onChange={(e) => setFormData({ ...formData, telegramChatId: e.target.value })}
-              />
-            </div>
-          </div>
-
+          {/* Google Spreadsheet ID */}
           <div>
-            <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">⚡ Giao diện Hệ thống (Theme)</label>
-            <div className="flex flex-wrap gap-2.5 mt-2">
-              {[
-                { id: "cyber", label: "🛸 Sci-Fi Cyber" },
-                { id: "dark", label: "🌑 Tối giản" },
-                { id: "light", label: "☀️ Sáng" },
-                { id: "ocean", label: "🌊 Đại dương" },
-                { id: "nature", label: "🌿 Tự nhiên" }
-              ].map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setTheme(t.id)}
-                  className={`px-4 py-2 text-xs font-extrabold rounded-lg cursor-pointer transition-all border ${
-                    theme === t.id
-                      ? "bg-[var(--primary)] border-[var(--primary)] text-white shadow-[0_0_12px_var(--primary-glow)]"
-                      : "bg-[var(--overlay-03)] border-[var(--border-color)] text-[var(--text-main)] hover:bg-[var(--overlay-06)]"
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Google Spreadsheet ID (Dành cho Auto-Sync)</label>
+            <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
+              Google Spreadsheet ID (Dành cho Auto-Sync)
+            </label>
             <input
               type="text"
               readOnly
-              className="w-full bg-black/40 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-muted)] cursor-not-allowed"
+              className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-muted)] cursor-not-allowed"
               value="1i7Ko3USW_UjsIeURYj9iNGcU91GYpyO9QooEdhNk8WY"
             />
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 mt-6 border-t border-[var(--border-color)] pt-5">
+          {/* Save */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-2 border-t border-[var(--border-color)] pt-5">
             <button
               type="submit"
               className="px-5 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-xs font-bold rounded-xl cursor-pointer transition-all shadow-sm"
             >
-              Lưu cấu hình
-            </button>
-            <button
-              type="button"
-              onClick={handleTriggerWebhookSetup}
-              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl cursor-pointer transition-all shadow-sm"
-            >
-              🌐 Kích hoạt Telegram Webhook 2 chiều
+              💾 Lưu cấu hình
             </button>
           </div>
         </form>

@@ -471,7 +471,7 @@ app.put("/api/settings", (req, res) => {
 // Google Sheets Sync Functions & API Endpoints
 async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
   const db = getDB();
-  const sheetsToCreate = ["Tasks", "Schedules", "Transactions", "CRM", "Products", "Tuitions"];
+  const sheetsToCreate = ["Công việc", "Lịch học", "Thu chi", "Khách hàng", "Sản phẩm", "Học phí"];
   let targetSpreadsheetId = spreadsheetId;
   
   if (!targetSpreadsheetId) {
@@ -565,12 +565,12 @@ async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
   }
   
   const dataPayload = [
-    { range: "Tasks!A1", values: taskRows },
-    { range: "Schedules!A1", values: scheduleRows },
-    { range: "Transactions!A1", values: txRows },
-    { range: "CRM!A1", values: crmRows },
-    { range: "Products!A1", values: productRows },
-    { range: "Tuitions!A1", values: tuitionRows }
+    { range: "Công việc!A1", values: taskRows },
+    { range: "Lịch học!A1", values: scheduleRows },
+    { range: "Thu chi!A1", values: txRows },
+    { range: "Khách hàng!A1", values: crmRows },
+    { range: "Sản phẩm!A1", values: productRows },
+    { range: "Học phí!A1", values: tuitionRows }
   ];
   
   const updateRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${targetSpreadsheetId}/values:batchUpdate`, {
@@ -602,8 +602,16 @@ async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
 
 async function importFromGoogleSheets(token: string, spreadsheetId: string) {
   const db = getDB();
-  const ranges = ["Tasks", "Schedules", "Transactions", "CRM", "Products", "Tuitions"];
-  const queryStr = ranges.map(r => `ranges=${r}!A1:Z1000`).join("&");
+  // Support both English and Vietnamese tab names
+  const ranges = [
+    "Công việc", "Tasks",
+    "Lịch học", "Schedules",
+    "Thu chi", "Transactions",
+    "Khách hàng", "CRM",
+    "Sản phẩm", "Products",
+    "Học phí", "Tuitions"
+  ];
+  const queryStr = ranges.map(r => `ranges=${encodeURIComponent(r)}!A1:Z1000`).join("&");
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchGet?valueRenderOption=FORMATTED_VALUE&${queryStr}`;
   
   const res = await fetch(url, {
@@ -622,13 +630,13 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
   const valueRanges = data.valueRanges || [];
   
   valueRanges.forEach((vr: any) => {
-    const rangeName = vr.range || "";
+    const rangeName = (vr.range || "").toLowerCase();
     const values = vr.values || [];
     if (values.length <= 1) return;
     
     const rows = values.slice(1);
     
-    if (rangeName.startsWith("Tasks")) {
+    if (rangeName.startsWith("tasks") || rangeName.startsWith("công việc")) {
       db.tasks = rows.map((row: any) => ({
         id: row[0] || "",
         title: row[1] || "",
@@ -640,7 +648,7 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
         actualTime: Number(row[7]) || 0,
         createdAt: row[8] || new Date().toISOString()
       }));
-    } else if (rangeName.startsWith("Schedules")) {
+    } else if (rangeName.startsWith("schedules") || rangeName.startsWith("lịch học")) {
       db.schedules = rows.map((row: any) => ({
         id: row[0] || "",
         title: row[1] || "",
@@ -652,7 +660,7 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
         completed: row[7] === "true",
         address: row[8] || ""
       }));
-    } else if (rangeName.startsWith("Transactions")) {
+    } else if (rangeName.startsWith("transactions") || rangeName.startsWith("thu chi")) {
       db.transactions = rows.map((row: any) => ({
         id: row[0] || "",
         projectId: row[1] || "",
@@ -662,8 +670,8 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
         note: row[5] || "",
         date: row[6] || new Date().toISOString().split("T")[0]
       }));
-    } else if (rangeName.startsWith("CRM")) {
-      db.crmContacts = rows.map((row: any) => ({
+    } else if (rangeName.startsWith("crm") || rangeName.startsWith("khách hàng")) {
+      const imported = rows.map((row: any) => ({
         id: row[0] || "",
         name: row[1] || "",
         phone: row[2] || "",
@@ -676,8 +684,14 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
         birthYear: row[9] || "",
         address: row[10] || "",
         locationUrl: row[11] || ""
-      }));
-    } else if (rangeName.startsWith("Products")) {
+      })).filter((c: any) => c.name && c.name.trim() !== "");
+      // Deduplicate by name (keep last occurrence)
+      const seenNames = new Map<string, any>();
+      imported.forEach((c: any) => {
+        seenNames.set(c.name.trim().toLowerCase(), c);
+      });
+      db.crmContacts = Array.from(seenNames.values());
+    } else if (rangeName.startsWith("products") || rangeName.startsWith("sản phẩm")) {
       db.products = rows.map((row: any) => ({
         id: row[0] || "",
         sku: row[1] || "",
@@ -687,7 +701,7 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
         cost: Number(row[5]) || 0,
         category: row[6] || ""
       }));
-    } else if (rangeName.startsWith("Tuitions")) {
+    } else if (rangeName.startsWith("tuitions") || rangeName.startsWith("học phí")) {
       db.tuitionRecords = rows.map((row: any) => ({
         id: row[0] || "",
         studentName: row[1] || "",
@@ -1158,7 +1172,19 @@ app.put("/api/crm/:id", (req, res) => {
 
 app.delete("/api/crm/:id", (req, res) => {
   const db = getDB();
-  db.crmContacts = db.crmContacts.filter((c: any) => String(c.id) !== String(req.params.id));
+  const targetId = String(req.params.id);
+  // Find the contact to get its name (for name-based dedup cleanup)
+  const toDelete = db.crmContacts.find((c: any) => String(c.id) === targetId);
+  if (toDelete) {
+    // Remove all contacts with the same name (handles sync duplicates)
+    const targetName = (toDelete.name || "").trim().toLowerCase();
+    db.crmContacts = db.crmContacts.filter(
+      (c: any) => (c.name || "").trim().toLowerCase() !== targetName
+    );
+  } else {
+    // Fallback: remove by ID
+    db.crmContacts = db.crmContacts.filter((c: any) => String(c.id) !== targetId);
+  }
   saveDB(db);
   res.json({ success: true });
 });

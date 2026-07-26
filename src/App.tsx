@@ -14,7 +14,7 @@ import { getPersistedToken, initAuth, googleSignIn } from "./lib/firebaseAuth";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [theme, setTheme] = useState(localStorage.getItem("app_theme") || "cyber");
+  const [theme, setTheme] = useState("light");
 
   const [onlineStatus, setOnlineStatus] = useState(navigator.onLine);
   const [toast, setToast] = useState<{ message: string; type: "success" | "danger" | "warning" | "info" } | null>(null);

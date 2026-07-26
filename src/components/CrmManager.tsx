@@ -376,16 +376,6 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
 
             {/* Col 4: Thao tác */}
             <div className="md:col-span-2 flex items-center md:justify-end gap-2 w-full mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-[var(--border-color)]">
-              <button
-                onClick={() => {
-                  setInvoiceData({ customerName: c.name, date: new Date().toLocaleDateString("vi-VN"), value: c.value });
-                  setShowInvoiceModal(true);
-                }}
-                title="Tạo phiếu thu"
-                className="flex items-center justify-center p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20 hover:scale-105 transition-all cursor-pointer text-[13px] border border-[var(--primary)]/20"
-              >
-                🧾
-              </button>
               {c.locationUrl && (
                 <a
                   href={c.locationUrl}
