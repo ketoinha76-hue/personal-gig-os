@@ -339,10 +339,19 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
   const metaData = await metaRes.json() as any;
   const actualSheets = (metaData.sheets || []).map((s: any) => s.properties.title);
   
-  const validRanges = expectedRanges.filter(r => actualSheets.includes(r));
+  const validRanges: string[] = [];
+  expectedRanges.forEach(expected => {
+    const expLower = expected.trim().toLowerCase();
+    const found = actualSheets.find((act: string) => {
+      const aL = act.trim().toLowerCase();
+      return aL === expLower || 
+             (expLower === "khách hàng" && (aL === "khach hang" || aL === "khách hàng " || aL === "khách hang"));
+    });
+    if (found) validRanges.push(found);
+  });
+
   if (validRanges.length === 0) {
-    // If none of our expected sheets exist, just return empty success to not crash
-    return { importedTasks: 0, importedCrm: 0 };
+    throw new Error(`Không tìm thấy tab "Khách hàng" hoặc "Schedules". Các tab hiện có trong file là: [${actualSheets.join(", ")}]. Vui lòng nhấp đúp vào tên tab ở dưới cùng Google Sheet và đổi tên thành "Khách hàng" hoặc "Công việc"!`);
   }
   
   const queryStr = validRanges.map(r => `ranges=${encodeURIComponent(r)}!A1:Z1000`).join("&");
