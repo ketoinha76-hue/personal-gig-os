@@ -829,7 +829,7 @@ export default function RouteManager({
 
               {/* Scrollable grid wrapper */}
               <div className="overflow-x-auto rounded-xl border border-[var(--border-color)] max-h-[580px] overflow-y-auto custom-scrollbar bg-black/10">
-                <table className="w-full min-w-[1000px] border-collapse text-left">
+                <table className="w-full min-w-[1000px] border-collapse text-left table-fixed">
                   <thead>
                     <tr className="border-b border-[var(--border-color)] bg-[var(--overlay-04)] text-[11px] font-bold text-[var(--text-main)] uppercase tracking-wider sticky top-0 z-30">
                       <th className="p-3 w-16 text-center border-r border-[var(--border-color)] sticky left-0 z-40 bg-[var(--bg-card)]">Giờ</th>
