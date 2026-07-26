@@ -373,7 +373,8 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
   const valueRanges = data.valueRanges || [];
   
   valueRanges.forEach((vr: any) => {
-    const rangeName = (vr.range || "").toLowerCase();
+    // Google Sheets adds single quotes around sheet names with spaces
+    const rangeName = (vr.range || "").toLowerCase().replace(/'/g, "");
     const values = vr.values || [];
     if (values.length <= 1) return;
     
