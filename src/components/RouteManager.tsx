@@ -832,7 +832,7 @@ export default function RouteManager({
               <div className="overflow-x-auto rounded-xl border border-[var(--border-color)] max-h-[580px] overflow-y-auto custom-scrollbar bg-black/10">
                 <table className="w-full min-w-[1000px] border-collapse text-left">
                   <thead>
-                    <tr className="border-b border-[var(--border-color)] bg-black/40 text-[11px] font-bold text-[var(--text-main)] uppercase tracking-wider sticky top-0 z-30">
+                    <tr className="border-b border-[var(--border-color)] bg-[var(--overlay-04)] text-[11px] font-bold text-[var(--text-main)] uppercase tracking-wider sticky top-0 z-30">
                       <th className="p-3 w-16 text-center border-r border-[var(--border-color)] sticky left-0 z-40 bg-[var(--bg-card)]">Giờ</th>
                       {weekdays.map((day) => {
                         const isToday = day.value === currentDayOfWeek;
@@ -840,11 +840,11 @@ export default function RouteManager({
                           <th 
                             key={day.value} 
                             className={`p-3 border-r border-[var(--border-color)] text-center min-w-[110px] ${
-                              isToday ? "bg-[var(--primary)]/20 text-white border-b-2 border-b-[var(--primary)] font-black" : ""
+                              isToday ? "bg-[var(--primary-glow)] text-[var(--primary)] border-b-2 border-b-[var(--primary)] font-black" : ""
                             }`}
                           >
                             <div className="flex flex-col items-center justify-center">
-                              <span className="font-extrabold text-[12px]">{day.label}</span>
+                              <span className={`font-extrabold text-[12px] ${isToday ? "text-[var(--primary)]" : "text-[var(--text-main)]"}`}>{day.label}</span>
                               {isToday && <span className="text-[9px] text-[var(--primary)] lowercase tracking-normal mt-0.5 font-bold">(hôm nay)</span>}
                             </div>
                           </th>
