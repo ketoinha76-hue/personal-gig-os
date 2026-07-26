@@ -74,6 +74,10 @@ export default function RouteManager({
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [userHeading, setUserHeading] = useState<number>(0);
 
+  // Full-screen map state
+  const [isMapFullscreen, setIsMapFullscreen] = useState(false);
+  const [isGettingGpsStart, setIsGettingGpsStart] = useState(false);
+
 
   // Load from localStorage ONCE on mount
   const [isLoaded, setIsLoaded] = useState(false);
@@ -1046,14 +1050,57 @@ export default function RouteManager({
             </h3>
             
             <div>
-              <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Tọa độ xuất phát cố định (nhà riêng/Yakult)</label>
-              <input
-                type="text"
-                className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-                value={depotCoords}
-                onChange={(e) => setDepotCoords(e.target.value)}
-                placeholder="Dán link Google Maps hoặc Vĩ độ, Kinh độ"
-              />
+              <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Tọa độ xuất phát</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  className="flex-1 bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+                  value={depotCoords}
+                  onChange={(e) => setDepotCoords(e.target.value)}
+                  placeholder="Dán link Google Maps hoặc Vĩ độ, Kinh độ"
+                />
+                <button
+                  onClick={() => {
+                    if (!navigator.geolocation) {
+                      showToast("Trình duyệt không hỗ trợ GPS.", "warning");
+                      return;
+                    }
+                    setIsGettingGpsStart(true);
+                    navigator.geolocation.getCurrentPosition(
+                      (pos) => {
+                        const { latitude, longitude } = pos.coords;
+                        const coordStr = `${latitude.toFixed(6)},${longitude.toFixed(6)}`;
+                        setDepotCoords(coordStr);
+                        setIsGettingGpsStart(false);
+                        showToast(`📍 Đã lấy vị trí GPS: ${coordStr}`, "success");
+                        if (routeMapRef.current) {
+                          routeMapRef.current.setView([latitude, longitude], 16);
+                        }
+                      },
+                      (err) => {
+                        setIsGettingGpsStart(false);
+                        showToast("Không lấy được vị trí GPS. Hãy bật định vị.", "danger");
+                      },
+                      { enableHighAccuracy: true, timeout: 10000 }
+                    );
+                  }}
+                  disabled={isGettingGpsStart}
+                  className="shrink-0 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg cursor-pointer transition-all flex items-center gap-1.5 border border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Lấy vị trí GPS hiện tại làm điểm xuất phát"
+                >
+                  {isGettingGpsStart ? (
+                    <span className="animate-pulse">⏳</span>
+                  ) : (
+                    <span>📍</span>
+                  )}
+                  {isGettingGpsStart ? "Đang lấy..." : "Vị trí của tôi"}
+                </button>
+              </div>
+              {userLocation && (
+                <p className="text-[10.5px] text-blue-400 mt-1 flex items-center gap-1">
+                  🔵 GPS đang hoạt động · {userLocation[0].toFixed(5)}, {userLocation[1].toFixed(5)}
+                </p>
+              )}
             </div>
 
             <div>
@@ -1181,13 +1228,17 @@ export default function RouteManager({
                         <span className="text-[11px] text-[var(--text-muted)]">{pt.address}</span>
                       </div>
                       <a
-                        href={`https://www.google.com/maps/dir/?api=1&destination=${pt.coords[0]},${pt.coords[1]}`}
+                        href={userLocation
+                          ? `https://www.google.com/maps/dir/?api=1&origin=${userLocation[0]},${userLocation[1]}&destination=${pt.coords[0]},${pt.coords[1]}&travelmode=driving`
+                          : `https://www.google.com/maps/dir/?api=1&destination=${pt.coords[0]},${pt.coords[1]}&travelmode=driving`
+                        }
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="ml-auto p-1.5 bg-blue-900/20 text-blue-400 border border-blue-500/20 rounded-md hover:bg-blue-600/30 transition-all flex items-center justify-center"
-                        title="Chỉ đường Google Map"
+                        className="ml-auto px-2.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white border border-blue-500/50 rounded-lg transition-all flex items-center gap-1.5 text-[11px] font-bold whitespace-nowrap"
+                        title={userLocation ? "Dẫn đường từ vị trí GPS của tôi" : "Chỉ đường Google Maps"}
                       >
                         <Map className="w-3.5 h-3.5" />
+                        {userLocation ? "Dẫn đường" : "Maps"}
                       </a>
                     </li>
                   ))}
@@ -1197,9 +1248,33 @@ export default function RouteManager({
           </div>
 
           {/* Map Column */}
-          <div className="lg:col-span-7 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-sm">
-            <h3 className="text-sm font-extrabold text-[var(--text-main)] uppercase tracking-wider mb-4">🗺️ Bản đồ lộ trình di chuyển</h3>
-            <div id="route-map" className="h-[450px] w-full rounded-xl border border-[var(--border-color)] z-10 relative">
+          <div className={`lg:col-span-7 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 shadow-sm ${
+            isMapFullscreen ? 'fixed inset-0 z-[9999] rounded-none p-0 border-0' : ''
+          }`}>
+            {!isMapFullscreen && (
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-extrabold text-[var(--text-main)] uppercase tracking-wider">🗺️ Bản đồ lộ trình di chuyển</h3>
+                <button
+                  onClick={() => {
+                    setIsMapFullscreen(true);
+                    setTimeout(() => {
+                      if (routeMapRef.current) routeMapRef.current.invalidateSize();
+                    }, 100);
+                  }}
+                  className="p-1.5 rounded-lg bg-black/30 hover:bg-black/50 text-[var(--text-muted)] hover:text-white transition-all border border-[var(--border-color)] cursor-pointer text-xs font-bold flex items-center gap-1"
+                  title="Mở rộng bản đồ toàn màn hình"
+                >
+                  ⛶ Toàn màn hình
+                </button>
+              </div>
+            )}
+            <div
+              id="route-map"
+              className={`w-full rounded-xl border border-[var(--border-color)] z-10 relative ${
+                isMapFullscreen ? 'h-full rounded-none border-0' : 'h-[450px]'
+              }`}
+            >
+              {/* GPS Tracking Button */}
               <button
                 onClick={() => {
                   if (typeof (window as any).DeviceOrientationEvent !== 'undefined' && typeof (window as any).DeviceOrientationEvent.requestPermission === 'function' && !isGpsActive) {
@@ -1207,11 +1282,64 @@ export default function RouteManager({
                   }
                   setIsGpsActive(!isGpsActive);
                 }}
-                className={`absolute bottom-6 right-4 z-[1000] p-3 rounded-full shadow-lg border-2 transition-all cursor-pointer ${isGpsActive ? 'bg-blue-500 border-blue-400 text-white animate-pulse' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                title="Bật/Tắt định vị của tôi"
+                className={`absolute bottom-20 right-4 z-[1000] p-3 rounded-full shadow-lg border-2 transition-all cursor-pointer ${isGpsActive ? 'bg-blue-500 border-blue-400 text-white animate-pulse' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                title="Bật/Tắt định vị theo dõi vị trí của tôi"
               >
                 <Compass className="w-6 h-6" />
               </button>
+
+              {/* Go to my location button */}
+              {isGpsActive && userLocation && (
+                <button
+                  onClick={() => {
+                    if (routeMapRef.current && userLocation) {
+                      routeMapRef.current.setView(userLocation, 17);
+                    }
+                  }}
+                  className="absolute bottom-6 right-4 z-[1000] p-3 rounded-full shadow-lg border-2 bg-green-500 border-green-400 text-white hover:bg-green-400 transition-all cursor-pointer"
+                  title="Về vị trí của tôi"
+                >
+                  <MapPin className="w-6 h-6" />
+                </button>
+              )}
+
+              {/* Exit fullscreen button */}
+              {isMapFullscreen && (
+                <button
+                  onClick={() => {
+                    setIsMapFullscreen(false);
+                    setTimeout(() => {
+                      if (routeMapRef.current) routeMapRef.current.invalidateSize();
+                    }, 100);
+                  }}
+                  className="absolute top-4 right-4 z-[1000] px-3 py-2 bg-black/80 text-white rounded-xl border border-white/20 hover:bg-black/90 transition-all cursor-pointer text-sm font-bold flex items-center gap-2 shadow-2xl"
+                  title="Thoát toàn màn hình"
+                >
+                  <X className="w-4 h-4" /> Thoát toàn màn hình
+                </button>
+              )}
+
+              {/* Fullscreen Google Maps navigate button */}
+              {isMapFullscreen && userLocation && optimizedRoutePath.length > 0 && (() => {
+                const nextStop = optimizedRoutePath.find(pt => !pt.completed);
+                if (!nextStop) return null;
+                return (
+                  <div className="absolute top-4 left-4 z-[1000] flex flex-col gap-2">
+                    <div className="bg-black/80 text-white rounded-xl px-4 py-2 text-sm font-bold border border-white/20 shadow-2xl">
+                      📍 Điểm tiếp theo: {nextStop.name}
+                    </div>
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&origin=${userLocation[0]},${userLocation[1]}&destination=${nextStop.coords[0]},${nextStop.coords[1]}&travelmode=driving`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl px-4 py-3 text-sm flex items-center gap-2 shadow-2xl border border-blue-400 transition-all"
+                    >
+                      <Map className="w-5 h-5" />
+                      Mở Google Maps dẫn đường
+                    </a>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
