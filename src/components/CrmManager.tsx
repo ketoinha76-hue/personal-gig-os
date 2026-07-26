@@ -202,10 +202,10 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
       name: item.name,
       email: "",
       phone: item.phone || "Tạp Hóa",
-      company: item.company,
-      address: item.address,
+      company: item.company || "Khách hàng ngày chẵn",
+      address: item.address || "",
       locationUrl: item.locationUrl || "",
-      value: item.value.toString() || "23300"
+      value: item.value != null ? item.value.toString() : "23300"
     });
     setShowModal(true);
   };
