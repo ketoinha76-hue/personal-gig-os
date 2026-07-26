@@ -13,11 +13,10 @@ interface TaskBoardProps {
 }
 
 export default function TaskBoard({ 
-  tasks, 
-  projects, 
+  schedules, 
+  crmContacts, 
   onSave, 
   onDelete, 
-  onUpdateStatus, 
   showToast,
   apiCall,
   refreshData
