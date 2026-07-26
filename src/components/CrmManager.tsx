@@ -27,6 +27,7 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterGroup, setFilterGroup] = useState("All");
+  const [filterSource, setFilterSource] = useState("All");
 
   // Invoice / Contract states
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
@@ -197,7 +198,7 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
     setFormData({
       name: "",
       email: "",
-      phone: "",
+      phone: "Công Ty",
       company: "Khách hàng ngày chẵn",
       address: "",
       locationUrl: "",
@@ -211,7 +212,7 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
     setFormData({
       name: item.name,
       email: "",
-      phone: item.phone || "Tạp Hóa",
+      phone: item.phone || "Công Ty",
       company: item.company || "Khách hàng ngày chẵn",
       address: item.address || "",
       locationUrl: item.locationUrl || "",
@@ -326,6 +327,19 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+          <select
+            className="bg-black/20 border border-[var(--border-color)] rounded-xl px-3 py-2 text-xs text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)] cursor-pointer"
+            value={filterSource}
+            onChange={(e) => setFilterSource(e.target.value)}
+          >
+            <option value="All" className="bg-slate-800 text-white">Tất cả Nguồn</option>
+            <option value="Công Ty" className="bg-slate-800 text-white">Công Ty</option>
+            <option value="Tạp Hóa" className="bg-slate-800 text-white">Tạp Hóa</option>
+            <option value="Trường Học" className="bg-slate-800 text-white">Trường Học</option>
+            <option value="Bách Hóa Xanh" className="bg-slate-800 text-white">Bách Hóa Xanh</option>
+            <option value="Con Cưng" className="bg-slate-800 text-white">Con Cưng</option>
+            <option value="MiniMarts" className="bg-slate-800 text-white">MiniMarts</option>
+          </select>
             <select
             className="bg-black/20 border border-[var(--border-color)] rounded-xl px-3 py-2 text-xs text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)] cursor-pointer"
             value={filterGroup}
@@ -349,11 +363,12 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
         {crmContacts
           .filter((c) => {
             const matchSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                (c.phone && c.phone.includes(searchTerm));
+                                (c.phone && c.phone.toLowerCase().includes(searchTerm.toLowerCase()));
             const matchGroup = filterGroup === "All" || c.company === filterGroup || 
                                (filterGroup === "Nhà riêng" && c.company === "Nhà riêng") ||
                                (filterGroup === "Đại lý" && c.company === "Đại lý");
-            return matchSearch && matchGroup;
+            const matchSource = filterSource === "All" || (c.phone && c.phone === filterSource);
+            return matchSearch && matchGroup && matchSource;
           })
           .map((c, idx) => (
           <div key={c.id} className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl px-4 py-4 flex flex-col md:grid md:grid-cols-12 gap-4 items-start md:items-center hover:border-[rgba(99,102,241,0.4)] transition-all shadow-sm">
@@ -373,11 +388,11 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
             <div className="md:col-span-4 flex flex-col gap-1.5 w-full text-[12px] text-[var(--text-muted)] border-l-0 md:border-l border-[var(--border-color)] md:pl-4">
               {c.phone ? (
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] uppercase font-bold text-white/30 w-12">K.Thác</span>
+                  <span className="text-[10px] uppercase font-bold text-white/30 w-12">Nguồn</span>
                   <span className="font-mono text-emerald-400 font-semibold">{c.phone}</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 italic opacity-50"><span className="text-[10px] uppercase font-bold text-white/30 w-12">K.Thác</span> -</div>
+                <div className="flex items-center gap-2 italic opacity-50"><span className="text-[10px] uppercase font-bold text-white/30 w-12">Nguồn</span> -</div>
               )}
               {c.address ? (
                 <div className="flex items-start gap-2">
@@ -463,15 +478,18 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Khai thác</label>
+                  <label className="block text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Nguồn</label>
                   <select
                     className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-[13px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   >
-                    <option value="Tạp Hóa" className="bg-slate-800 text-white">Tạp Hóa</option>
                     <option value="Công Ty" className="bg-slate-800 text-white">Công Ty</option>
-                    <option value="Khác" className="bg-slate-800 text-white">Khác</option>
+                    <option value="Tạp Hóa" className="bg-slate-800 text-white">Tạp Hóa</option>
+                    <option value="Trường Học" className="bg-slate-800 text-white">Trường Học</option>
+                    <option value="Bách Hóa Xanh" className="bg-slate-800 text-white">Bách Hóa Xanh</option>
+                    <option value="Con Cưng" className="bg-slate-800 text-white">Con Cưng</option>
+                    <option value="MiniMarts" className="bg-slate-800 text-white">MiniMarts</option>
                   </select>
                 </div>
                 <div>
