@@ -58,12 +58,8 @@ export interface Product {
 export interface CrmContact {
   id: string;
   name: string;
-  email?: string;
-  phone: string;
-  company: string; // Used for Groups now (Khách hàng ngày chẵn, Tạp hóa, v.v.)
-  pipelineStage: string;
-  lastContacted?: string;
-  reminderDate?: string;
+  phone: string; // Used for "Khai thác: Tạp Hóa / Công Ty"
+  company: string; // Used for "Khách hàng ngày chẵn / lẻ"
   value: number;
   address: string;
   locationUrl?: string;

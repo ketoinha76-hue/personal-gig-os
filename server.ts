@@ -521,12 +521,11 @@ async function exportToGoogleSheets(token: string, spreadsheetId?: string) {
   });
   
   const crmRows = [
-    ["ID", "Tên khách hàng", "Số điện thoại", "Email", "Nhóm", "Giai đoạn", "Liên hệ gần nhất", "Nhắc nhở", "Giá trị", "Địa chỉ", "Link bản đồ"]
+    ["ID", "Tên khách hàng", "Khai thác", "Nhóm", "Giá trị", "Địa chỉ", "Link bản đồ"]
   ];
   db.crmContacts.forEach((c: any) => {
     crmRows.push([
-      c.id || "", c.name || "", c.phone || "", c.email || "", c.company || "", 
-      c.pipelineStage || "", c.lastContacted || "", c.reminderDate || "", 
+      c.id || "", c.name || "", c.phone || "", c.company || "", 
       String(c.value || 0), c.address || "", c.locationUrl || ""
     ]);
   });
@@ -626,14 +625,10 @@ async function importFromGoogleSheets(token: string, spreadsheetId: string) {
         id: row[0] || "",
         name: row[1] || "",
         phone: row[2] || "",
-        email: row[3] || "",
-        company: row[4] || "",
-        pipelineStage: row[5] || "",
-        lastContacted: row[6] || "",
-        reminderDate: row[7] || "",
-        value: Number(row[8]) || 0,
-        address: row[9] || "",
-        locationUrl: row[10] || ""
+        company: row[3] || "",
+        value: Number(row[4]) || 0,
+        address: row[5] || "",
+        locationUrl: row[6] || ""
       })).filter((c: any) => c.name && c.name.trim() !== "");
       // Deduplicate by name (keep last occurrence)
       const seenNames = new Map<string, any>();
