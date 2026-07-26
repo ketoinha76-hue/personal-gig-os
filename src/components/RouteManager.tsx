@@ -279,8 +279,9 @@ export default function RouteManager({
       const map = L.map("route-map").setView([initialLat, initialLng], 13);
       routeMapRef.current = map;
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap contributors"
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+        attribution: "&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors &copy; <a href='https://carto.com/'>CARTO</a>",
+        maxZoom: 20
       }).addTo(map);
 
       // Redraw default markers
@@ -307,8 +308,6 @@ export default function RouteManager({
       }
     });
 
-    // Readd tiles
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
 
     // Starter Point Marker (Depot)
     L.marker([depotLat, depotLng], {
@@ -1258,8 +1257,15 @@ export default function RouteManager({
                   onClick={() => {
                     setIsMapFullscreen(true);
                     setTimeout(() => {
-                      if (routeMapRef.current) routeMapRef.current.invalidateSize();
-                    }, 100);
+                      if (routeMapRef.current) {
+                        routeMapRef.current.invalidateSize();
+                      }
+                    }, 50);
+                    setTimeout(() => {
+                      if (routeMapRef.current) {
+                        routeMapRef.current.invalidateSize();
+                      }
+                    }, 300);
                   }}
                   className="p-1.5 rounded-lg bg-black/30 hover:bg-black/50 text-[var(--text-muted)] hover:text-white transition-all border border-[var(--border-color)] cursor-pointer text-xs font-bold flex items-center gap-1"
                   title="Mở rộng bản đồ toàn màn hình"
@@ -1309,8 +1315,15 @@ export default function RouteManager({
                   onClick={() => {
                     setIsMapFullscreen(false);
                     setTimeout(() => {
-                      if (routeMapRef.current) routeMapRef.current.invalidateSize();
-                    }, 100);
+                      if (routeMapRef.current) {
+                        routeMapRef.current.invalidateSize();
+                      }
+                    }, 50);
+                    setTimeout(() => {
+                      if (routeMapRef.current) {
+                        routeMapRef.current.invalidateSize();
+                      }
+                    }, 300);
                   }}
                   className="absolute top-4 right-4 z-[1000] px-3 py-2 bg-black/80 text-white rounded-xl border border-white/20 hover:bg-black/90 transition-all cursor-pointer text-sm font-bold flex items-center gap-2 shadow-2xl"
                   title="Thoát toàn màn hình"
