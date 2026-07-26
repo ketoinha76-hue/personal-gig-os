@@ -36,13 +36,6 @@ const DEFAULT_DATABASE = {
       "department": "Quản lý"
     }
   ],
-  "tasks": [
-    {
-      "id": "t-1",
-      "title": "Giao sữa Yakult Quận 1 - Tuyến Phường Bến Nghé",
-      "description": "Giao 20 lốc Yakult cho đại lý Cafe Trung Nguyên và 15 lốc cho các hộ dân chung cư.",
-      "projectId": "p-1",
-      "priority": "Cao",
   "tasks": [],
   "projects": [],
   "products": [],
