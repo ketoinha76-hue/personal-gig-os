@@ -14,8 +14,7 @@ export default function Navbar({ activeTab, setActiveTab, companyName }: NavbarP
     { id: "tasks", label: "Công việc", icon: "📝" },
     { id: "crm", label: "Quản lý Khách hàng", icon: "👥" },
     { id: "calendar", label: "Lịch tuần", icon: "📅" },
-    { id: "delivery_map", label: "Bản đồ giao sữa", icon: "🚚" },
-    { id: "settings", label: "Cấu hình hệ thống", icon: "🛠️" }
+    { id: "delivery_map", label: "Bản đồ giao sữa", icon: "🚚" }
   ];
 
   return (

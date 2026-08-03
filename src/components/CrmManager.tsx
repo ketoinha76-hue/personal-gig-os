@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { CrmContact } from "../types";
+import data from "../importData.json";
 
 interface CrmManagerProps {
   crmContacts: CrmContact[];
@@ -186,9 +187,31 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
       const extracted = extractCoordinates(val);
       if (extracted && crmMapRef.current) {
         crmMapRef.current.setView(extracted, 14);
-      }
-      if (extracted && crmMarkerRef.current) {
-        crmMarkerRef.current.setLatLng(extracted);
+        if (crmMarkerRef.current) crmMarkerRef.current.setLatLng(extracted);
+      } else if (val.includes("google.com/maps/place/")) {
+        // It's a place link without explicit coordinates in the basic format
+        const placeMatch = val.match(/\/place\/([^/]+)/);
+        if (placeMatch) {
+          const placeName = decodeURIComponent(placeMatch[1].replace(/\+/g, ' '));
+          showToast(`Đang tự động tìm tọa độ cho: ${placeName}...`, "info");
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(placeName)}&countrycodes=vn`);
+            const data = await res.json();
+            if (data && data.length > 0) {
+              const lat = parseFloat(data[0].lat);
+              const lon = parseFloat(data[0].lon);
+              const mapsUrl = `https://www.google.com/maps?q=${lat.toFixed(6)},${lon.toFixed(6)}`;
+              setFormData((prev) => ({ ...prev, locationUrl: mapsUrl }));
+              if (crmMapRef.current) crmMapRef.current.setView([lat, lon], 16);
+              if (crmMarkerRef.current) crmMarkerRef.current.setLatLng([lat, lon]);
+              showToast("Đã lấy được tọa độ tự động!", "success");
+            } else {
+              showToast("Không tìm thấy tọa độ tự động. Hãy dùng nút Tìm tọa độ theo Địa chỉ.", "warning");
+            }
+          } catch (err) {
+            console.error(err);
+          }
+        }
       }
     }
   };
@@ -254,7 +277,7 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
     }
     showToast("Đang tự động tìm kiếm tọa độ...", "info");
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.address)}`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.address)}&countrycodes=vn`);
       const data = await res.json();
       if (data && data.length > 0) {
         const lat = parseFloat(data[0].lat);
@@ -355,6 +378,29 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
           >
             + Thêm
           </button>
+          <button
+            onClick={async () => {
+              showToast('Đang nạp dữ liệu (Tránh treo máy)... Vui lòng đợi!', 'info');
+              let count = 0;
+              for (let d of data) {
+                try {
+                  const exists = crmContacts.find(c => c.name === d.name);
+                  if (!exists) {
+                    await apiCall('/api/crm', 'POST', d);
+                    count++;
+                    await new Promise(r => setTimeout(r, 600)); // Chờ 600ms tránh limit của Google
+                  }
+                } catch (e) {
+                  console.error('Error inserting', d.name, e);
+                  await new Promise(r => setTimeout(r, 2000));
+                }
+              }
+              showToast(`Đã nạp xong ${count} khách hàng mới! Hãy F5 lại trang.`, 'success');
+            }}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white text-xs font-bold rounded-xl cursor-pointer hover:bg-green-600 transition-all shadow-sm active:scale-95"
+          >
+            🚀 NẠP DỮ LIỆU TỰ ĐỘNG
+          </button>
         </div>
       </div>
 
@@ -420,7 +466,7 @@ export default function CrmManager({ crmContacts, onSave, onDelete, showToast, a
             <div className="md:col-span-2 flex items-center md:justify-end gap-2 w-full mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-[var(--border-color)]">
               {c.locationUrl && (
                 <a
-                  href={c.locationUrl}
+                  href={c.locationUrl.startsWith("http") ? c.locationUrl : `https://${c.locationUrl}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   title="Chỉ đường"

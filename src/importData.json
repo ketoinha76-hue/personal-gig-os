@@ -1,0 +1,578 @@
+[
+  {
+    "id": "bb6ea720-5771-489e-b425-153dfe70fe87",
+    "name": "BHX - 376 Lý Thái Tổ, Ấp Bến Sắc",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "47ccaab4-a36c-46fe-add0-59db4e93b93c",
+    "name": "BHX - Tổ 31 Ấp Trầu, Phước Thiền",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "e90ae859-72de-4da1-89b1-ca2d137da668",
+    "name": "BHX - Thửa 67 Phước Thiền - 8108",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "b6ed8356-98fb-48ce-bdc9-2d2707cf5f4c",
+    "name": "BHX - Ấp Trầu (Phước Thiền) Gia Dụng - 6776",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "3703d28a-1612-4ed5-94f8-2e3066eb61a2",
+    "name": "BHX: Tổ 25, Ấp Bến Sắn, Phước Thiền",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "c9a7df2a-3264-498e-97cd-6f1d520a38b4",
+    "name": "BHX: ẤP 5 Tam An, Long Thành 7011",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "ebadaab9-f28b-4688-a193-ccf3f513c379",
+    "name": "Vinmart+ - DNI 55/7 Phạm Văn Đồng - 6187",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "cb4a2df2-3ad4-46c5-83ae-4f7e98fad9da",
+    "name": "Concung - 450 Lý Thái Tổ ( Vòng Xoay Bến Cam) - 507",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "56e08a15-a5fb-47d1-9a9f-ebee5a719c24",
+    "name": "Concung - 55/7 Phạm Văn Đồng - 891",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "34c027f0-1bda-4d0b-8812-d7afad2d3323",
+    "name": "Concung - Hương Lộ 21 - 1156",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "31018ded-ca81-4606-aab2-c5cba9765590",
+    "name": "CÔNG TY TNHH PHAN BÁ LỘC - Nhơn Trạch, Đồng Nai",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "2c58527b-b4b6-47a9-acf5-59901a4075cc",
+    "name": "Công ty PV GAS D- Nhơn Trạch",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "149dcdbc-5031-452a-8743-d735a9b913f5",
+    "name": "Suất ăn công nghiệp Gô Co Vi Na (Bếp Ansell Vina, Long Thành)",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "af1f7bce-5945-4205-8eb7-0340559d2494",
+    "name": "SACN Hưng Thịnh (Bếp công ty Cadivi)",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "8f96d04c-41dc-4ad8-a33d-e00e233f9901",
+    "name": "SACN Hưng Thịnh (Bếp công ty Welcron Global)",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "41019c11-7106-447f-b5a4-63ed601c6291",
+    "name": "SACN TUẤN PHÁT (Công ty Lotte Chemical Việt Nam, Nhơn Trạch)",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "597d5bd3-9d6e-4e30-8819-62c0ef9c26c8",
+    "name": "Suất ăn công nghiệp Bizen (Bếp OM Digital, Long Thành)",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "fd8f2618-5a41-4428-8822-611f4f3843cc",
+    "name": "Hai Đỏ",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "14c0fafb-e569-4aa9-94a9-4957768b00dd",
+    "name": "Hoàng Ân",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "64e73db0-9b46-4bc4-85d7-fcbb0cf49c0e",
+    "name": "Châu Lan",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "1ef288b7-86ad-428a-b4ff-7f03918d5780",
+    "name": "Hùng Quỳnh",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "bdcb52e6-5ca3-482a-b42a-1caccb7802e1",
+    "name": "Năm Biên",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "b1fd093c-e169-4317-ab60-517b6186a06e",
+    "name": "Anh Thy",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "194fb7e6-2222-4304-9e98-afda66126893",
+    "name": "Thảo Linh",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "7af76a3f-7567-43df-95b5-9ea840c97c8a",
+    "name": "TRƯỜNG MẦM NON BÌNH MINH",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "cf654fd0-75c9-4922-b801-37b5b959fbca",
+    "name": "Vinh Quang 1",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "9394b17c-ae57-4c3f-982f-a42c3621c52a",
+    "name": "Bảo Ngọc",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "466ff2a6-35aa-408a-ab85-2b2a2550ea46",
+    "name": "Bà Phương",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "b42f4379-1a5d-489f-b575-7e9b9891d6ff",
+    "name": "Bh Hồng Gấm",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "a3cc3aec-0350-4f30-b8d1-abe29e31d254",
+    "name": "Hoàng Hiệp",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "ef32621f-0f41-4ef6-8bfc-ec62d1379431",
+    "name": "Linh Trường",
+    "phone": "",
+    "company": "Khách hàng ngày chẵn",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "93fe8a01-8ff9-4a9f-9290-e5cd13b16ba1",
+    "name": "BHX - 620H, đường Lê Duẩn, Tổ 1, Cầu Xéo, Long Thành",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "b0b5e571-220f-415e-913e-6252bd4a3df2",
+    "name": "BHX - Tổ 10, Ấp 1, Xã Long Thọ",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "43d6fbe6-c0a5-44c2-adf9-f41b66c92def",
+    "name": "BHX - Tổ 9, Ấp 3, Hiệp Phước",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "275209f1-ca18-45ab-a20a-68291f2a44b1",
+    "name": "BHX - Phú Hội, Nhơn Trạch - 8913",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "65295166-99b2-4df7-bad4-b6ea82347471",
+    "name": "BHX - Thửa 219 Phú Thạnh - 6818",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "870548c7-9468-4aca-ab91-86bc947b7f86",
+    "name": "BHX - Vĩnh Tuy (Long Tân), Nhơn Trạch - 6256",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "5d2fba52-392f-42ee-84e2-730911eb463c",
+    "name": "Concung - 771 Hùng Vương - 794",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "d587b766-e18c-4ac4-806e-e6cdf2faa7d2",
+    "name": "Concung - 292 Hùng Vương - 816",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "05ead13a-58bc-45bc-9e19-0165c2932bff",
+    "name": "MẪU GIÁO ĐỘC LẬP THÙY DƯƠNG",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "f3902b6f-370a-4f6d-a12a-2ef11ef46161",
+    "name": "Trường MN Độc Lập Thế Giới Mới, Long Thành",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "c4b49714-4403-4dc0-9294-41075b6067e6",
+    "name": "TRƯỜNG MẦM NON DÂN LẬP SAO MAI",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "e7c2c4a3-4f11-4fbe-89f8-641aeda781aa",
+    "name": "Suất ăn công nghiệp Hoa Mai (Bếp Olympus, Long Thành)",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "8318d7ae-ccef-472c-90ea-8063896ef124",
+    "name": "Suất ăn công nghiệp CJ (Bếp Joowon, Nhơn Trạch, Đồng Nai)",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "8fbefd9f-c8bc-47c0-be26-c62220550771",
+    "name": "CÔNG TY TNHH PHAN BÁ LỘC - Nhơn Trạch, Đồng Nai",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "2c4850b8-79a0-4bab-8a7c-f6143d89c0d9",
+    "name": "Suất ăn công nghiệp Hoa Mai (Bếp ODSV (OM), Long Thành)",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "5bd235e7-723a-4160-beaa-2846d5e84f39",
+    "name": "Suất ăn công nghiệp CJ (Bếp Công Nghiệp T.A VN, Nhơn Trạch, Đồng Nai)",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "7a9550ed-9bec-47dd-af42-001fac233551",
+    "name": "Suất ăn công nghiệp CJ (Bếp Công Ty A&E, Nhơn Trạch, Đồng Nai)",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "2f46cae9-8d94-44a1-84c1-617407109f77",
+    "name": "FamilyMart SWANBAY, Nhơn Trạch, Đồng Nai - 00281",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "e76f0c92-8a61-4a73-a64a-829763fbc82c",
+    "name": "CÔNG TY CỔ PHẦN THƯƠNG MẠI DỊCH VỤ MINH DŨNG CƯỜNG",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "a42f0f2c-61bb-4339-b81a-63fcf2b1d85c",
+    "name": "Hoàng Oanh",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "6480d1af-5688-403b-850a-aec538e79848",
+    "name": "Bối Bối",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "bca90162-81ed-41ed-8674-983d0635306a",
+    "name": "Cô Hồng",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "d0bd78ac-8bd5-4838-93b7-da0b76179885",
+    "name": "Cô Đen",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "fcd4a430-140e-4c53-93d7-fcbee4dc5c89",
+    "name": "Kim Tuyến",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "6e7293b7-5489-4e2d-9b9a-f650a96e82fb",
+    "name": "Mỹ Dung",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "c1395226-106a-495b-8587-e9b50662e039",
+    "name": "Bhg Long Tân",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "c11596a3-e82c-4532-a7fe-8b08c7991ea3",
+    "name": "Ngọc Mến",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "8e1d2ee9-41a8-484f-8d14-4f2463704625",
+    "name": "Xuân Thảo",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "5dc0736a-b638-4e24-bdcc-83eb2cceb110",
+    "name": "Ngọc Dung",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "708aee74-caa2-4faf-a5f6-ab6a96639a4e",
+    "name": "Triệu Mẫn",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "c185c265-206b-46c6-a76b-f2a902931c9b",
+    "name": "Khánh Linh",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "b0fb3b33-d29b-40aa-ac9f-632e85be625c",
+    "name": "Hai Thuận",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  },
+  {
+    "id": "b836cb11-cb14-4592-9ed5-b0eb016d0d92",
+    "name": "Thanh Tiền",
+    "phone": "",
+    "company": "Khách hàng ngày lẻ",
+    "value": 0,
+    "address": "",
+    "locationUrl": ""
+  }
+]

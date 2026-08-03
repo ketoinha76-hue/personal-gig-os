@@ -59,6 +59,14 @@ export default function RouteManager({
   const [routeFilterGroup, setRouteFilterGroup] = useState("All");
   const [startChoice, setStartChoice] = useState<"yakult" | "me">("yakult");
 
+  // Priority and ETA config
+  const [routeStartTime, setRouteStartTime] = useState<string>(() => {
+    const now = new Date();
+    return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  });
+  const [stopTimeMinutes, setStopTimeMinutes] = useState<number>(5);
+  const [priorityTimes, setPriorityTimes] = useState<Record<string, string>>({});
+
   const [isTracking, setIsTracking] = useState(false);
   const [trackingStartTime, setTrackingStartTime] = useState<number | null>(null);
   const [trackingDistance, setTrackingDistance] = useState(0);
@@ -454,11 +462,54 @@ export default function RouteManager({
       return;
     }
 
-    // Nearest Neighbor optimization algorithm
+    // Tách nhóm Ưu tiên và Bình thường
+    const priorityNodes = coordList.filter(c => priorityTimes[c.id]);
+    const normalNodes = coordList.filter(c => !priorityTimes[c.id]);
+
+    // Sắp xếp nhóm ưu tiên theo thời gian sớm nhất
+    priorityNodes.sort((a, b) => {
+      const timeA = priorityTimes[a.id];
+      const timeB = priorityTimes[b.id];
+      if (timeA < timeB) return -1;
+      if (timeA > timeB) return 1;
+      return 0;
+    });
+
     let currentCoords = [depotLat, depotLng];
     const sortedRoute: any[] = [];
-    const unvisited = [...coordList];
+    
+    // Helpers cho thời gian
+    const parseTime = (timeStr: string) => {
+      const [h, m] = (timeStr || "07:00").split(':').map(Number);
+      return h * 60 + (m || 0);
+    };
+    const formatTime = (totalMins: number) => {
+      const h = Math.floor(totalMins / 60) % 24;
+      const m = Math.floor(totalMins % 60);
+      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    };
 
+    let currentTimeMins = parseTime(routeStartTime);
+
+    // 1. Xếp các node Ưu tiên trước
+    for (const node of priorityNodes) {
+      const dKm = getDistance(currentCoords, node.coords) * 111;
+      const travelMins = Math.round(dKm * 2); // Tốc độ ~30km/h => 1km = 2p
+      const arriveMins = currentTimeMins + travelMins;
+      
+      sortedRoute.push({
+        ...node,
+        completed: false,
+        eta: formatTime(arriveMins),
+        priorityTime: priorityTimes[node.id]
+      });
+      
+      currentTimeMins = arriveMins + stopTimeMinutes;
+      currentCoords = node.coords;
+    }
+
+    // 2. Thuật toán Nearest Neighbor cho các điểm bình thường
+    let unvisited = [...normalNodes];
     while (unvisited.length > 0) {
       let minDistance = Infinity;
       let nextIdx = -1;
@@ -471,7 +522,18 @@ export default function RouteManager({
       }
       if (nextIdx !== -1) {
         const nextDest = unvisited.splice(nextIdx, 1)[0];
-        sortedRoute.push({ ...nextDest, completed: false });
+        
+        const dKm = getDistance(currentCoords, nextDest.coords) * 111;
+        const travelMins = Math.round(dKm * 2);
+        const arriveMins = currentTimeMins + travelMins;
+
+        sortedRoute.push({ 
+          ...nextDest, 
+          completed: false,
+          eta: formatTime(arriveMins)
+        });
+        
+        currentTimeMins = arriveMins + stopTimeMinutes;
         currentCoords = nextDest.coords;
       }
     }
@@ -1080,20 +1142,10 @@ export default function RouteManager({
             <div>
               <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">Tọa độ xuất phát</label>
               <div className="flex gap-2">
-                <select
-                  className="flex-1 bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
-                  value={startChoice}
-                  onChange={(e) => setStartChoice(e.target.value as "yakult" | "me")}
-                >
-                  <option value="yakult" className="bg-slate-800 text-white">🏢 Cửa hàng Yakult Tam An</option>
-                  <option value="me" className="bg-slate-800 text-white">📍 Vị trí của tôi (GPS)</option>
-                </select>
+                <div className="flex-1 bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-main)] flex items-center">
+                  🏢 Cửa hàng Yakult Tam An
+                </div>
               </div>
-              {startChoice === "me" && userLocation && (
-                <p className="text-[10.5px] text-blue-400 mt-1 flex items-center gap-1">
-                  🔵 GPS đang hoạt động · {userLocation[0].toFixed(5)}, {userLocation[1].toFixed(5)}
-                </p>
-              )}
             </div>
 
             <div>
@@ -1158,18 +1210,70 @@ export default function RouteManager({
                     return <div className="text-[11px] text-[var(--text-muted)] italic text-center py-4">Không tìm thấy khách hàng sữa nào.</div>;
                   }
 
-                  return filteredContacts.map((c) => (
-                    <label key={c.id} className="flex items-center gap-2.5 text-xs text-[var(--text-main)] cursor-pointer py-1 hover:bg-white/[0.02]">
-                      <input
-                        type="checkbox"
-                        checked={selectedCrmRouteIds.includes(c.id)}
-                        onChange={() => toggleRouteSelection(c.id)}
-                        className="accent-[var(--primary)]"
-                      />
-                      <span className="line-clamp-1">{c.name} {c.address ? `(${c.address})` : ''}</span>
-                    </label>
-                  ));
+                  return filteredContacts.map((c) => {
+                    const isSelected = selectedCrmRouteIds.includes(c.id);
+                    return (
+                      <div key={c.id} className="flex flex-col py-1 border-b border-white/5 last:border-0 hover:bg-white/[0.02]">
+                        <label className="flex items-center gap-2.5 text-xs text-[var(--text-main)] cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleRouteSelection(c.id)}
+                            className="accent-[var(--primary)]"
+                          />
+                          <span className="line-clamp-1">{c.name} {c.address ? `(${c.address})` : ''}</span>
+                        </label>
+                        {isSelected && (
+                          <div className="flex items-center gap-2 mt-1.5 ml-6">
+                            <span className="text-[10px] text-amber-500 font-bold">Ưu tiên giao trước:</span>
+                            <input
+                              type="time"
+                              className="bg-black/30 border border-[var(--border-color)] rounded-md px-1.5 py-0.5 text-[10px] text-[var(--text-main)] focus:border-amber-500 focus:outline-none"
+                              value={priorityTimes[c.id] || ""}
+                              onChange={(e) => setPriorityTimes({ ...priorityTimes, [c.id]: e.target.value })}
+                            />
+                            {priorityTimes[c.id] && (
+                              <button 
+                                onClick={() => {
+                                  const pt = { ...priorityTimes };
+                                  delete pt[c.id];
+                                  setPriorityTimes(pt);
+                                }}
+                                className="text-red-400 hover:text-red-300 text-[10px]"
+                              >
+                                Xóa
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  });
                 })()}
+              </div>
+
+              {/* Cấu hình thời gian */}
+              <div className="grid grid-cols-2 gap-3 mt-1">
+                <div>
+                  <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Giờ xuất phát</label>
+                  <input
+                    type="time"
+                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-2 py-1.5 text-xs text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+                    value={routeStartTime}
+                    onChange={(e) => setRouteStartTime(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Dừng mỗi trạm (phút)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="60"
+                    className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-2 py-1.5 text-xs text-[var(--text-main)] focus:outline-none focus:border-[var(--primary)]"
+                    value={stopTimeMinutes}
+                    onChange={(e) => setStopTimeMinutes(Number(e.target.value))}
+                  />
+                </div>
               </div>
             </div>
 
@@ -1209,29 +1313,36 @@ export default function RouteManager({
                     <span className="text-[var(--text-muted)] font-semibold">Xuất phát từ cửa hàng (Tổng kho)</span>
                   </li>
                   {optimizedRoutePath.map((pt, idx) => (
-                    <li key={idx} className="flex gap-3 items-start">
+                    <li key={idx} className="flex gap-3 items-start relative">
                       <input
                         type="checkbox"
                         checked={pt.completed}
                         onChange={() => handleToggleRouteCheck(idx)}
                         className="mt-0.5 accent-[var(--primary)] cursor-pointer w-4 h-4 shrink-0"
                       />
-                      <div className={pt.completed ? "line-through opacity-50" : ""}>
-                        Giao cho: <strong className="text-[var(--text-main)]">{pt.name}</strong> <br/>
-                        <span className="text-[11px] text-[var(--text-muted)]">{pt.address}</span>
+                      <div className={`flex flex-col ${pt.completed ? "line-through opacity-50" : ""}`}>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 bg-indigo-500/20 text-indigo-400 rounded-md">
+                            [Dự kiến: {pt.eta}]
+                          </span>
+                          {pt.priorityTime && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-amber-500/20 text-amber-500 rounded-md border border-amber-500/30">
+                              ★ Ưu tiên trước: {pt.priorityTime}
+                            </span>
+                          )}
+                        </div>
+                        <span className="mt-1">Giao cho: <strong className="text-[var(--text-main)]">{pt.name}</strong></span>
+                        <span className="text-[11px] text-[var(--text-muted)] mt-0.5">{pt.address}</span>
                       </div>
                       <a
-                        href={userLocation
-                          ? `https://www.google.com/maps/dir/?api=1&origin=${userLocation[0]},${userLocation[1]}&destination=${pt.coords[0]},${pt.coords[1]}&travelmode=driving`
-                          : `https://www.google.com/maps/dir/?api=1&destination=${pt.coords[0]},${pt.coords[1]}&travelmode=driving`
-                        }
+                        href={`https://www.google.com/maps/dir/?api=1&origin=${(startChoice === "me" && userLocation) ? userLocation[0] : 10.8087727},${(startChoice === "me" && userLocation) ? userLocation[1] : 106.9241267}&destination=${pt.coords[0]},${pt.coords[1]}&travelmode=driving`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="ml-auto px-2.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white border border-blue-500/50 rounded-lg transition-all flex items-center gap-1.5 text-[11px] font-bold whitespace-nowrap"
-                        title={userLocation ? "Dẫn đường từ vị trí GPS của tôi" : "Chỉ đường Google Maps"}
+                        title={(startChoice === "me" && userLocation) ? "Dẫn đường từ vị trí GPS của tôi" : "Chỉ đường Google Maps"}
                       >
                         <Map className="w-3.5 h-3.5" />
-                        {userLocation ? "Dẫn đường" : "Maps"}
+                        {(startChoice === "me" && userLocation) ? "Dẫn đường" : "Maps"}
                       </a>
                     </li>
                   ))}
@@ -1249,36 +1360,6 @@ export default function RouteManager({
               id="route-map"
               className="w-full h-[450px] rounded-xl border border-[var(--border-color)] z-10 relative"
             >
-              {/* GPS Tracking Button */}
-              <button
-                onClick={() => {
-                  if (typeof (window as any).DeviceOrientationEvent !== 'undefined' && typeof (window as any).DeviceOrientationEvent.requestPermission === 'function' && !isGpsActive) {
-                    (window as any).DeviceOrientationEvent.requestPermission().catch(console.error);
-                  }
-                  setIsGpsActive(!isGpsActive);
-                }}
-                className={`absolute bottom-20 right-4 z-[1000] p-3 rounded-full shadow-lg border-2 transition-all cursor-pointer ${isGpsActive ? 'bg-blue-500 border-blue-400 text-white animate-pulse' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                title="Bật/Tắt định vị theo dõi vị trí của tôi"
-              >
-                <Compass className="w-6 h-6" />
-              </button>
-
-              {/* Go to my location button */}
-              {isGpsActive && userLocation && (
-                <button
-                  onClick={() => {
-                    if (routeMapRef.current && userLocation) {
-                      routeMapRef.current.setView(userLocation, 17);
-                    }
-                  }}
-                  className="absolute bottom-6 right-4 z-[1000] p-3 rounded-full shadow-lg border-2 bg-green-500 border-green-400 text-white hover:bg-green-400 transition-all cursor-pointer"
-                  title="Về vị trí của tôi"
-                >
-                  <MapPin className="w-6 h-6" />
-                </button>
-              )}
-
-
             </div>
           </div>
 

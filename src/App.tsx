@@ -6,7 +6,6 @@ import TaskBoard from "./components/TaskBoard";
 import CrmManager from "./components/CrmManager";
 import RouteManager from "./components/RouteManager";
 import SettingsPanel from "./components/SettingsPanel";
-import GoogleSheetsSync from "./components/GoogleSheetsSync";
 import { Settings, Task, Project, CrmContact, Schedule } from "./types";
 import { getPersistedToken, initAuth, googleSignIn } from "./lib/firebaseAuth";
 
@@ -147,6 +146,28 @@ export default function App() {
 
   // Standard fetch wrapper with automatic offline queueing
   const apiCall = async (url: string, method = "GET", body: any = null) => {
+    // 1. Google Apps Script Environment (Production)
+    if (typeof (window as any).google !== 'undefined' && (window as any).google.script) {
+      return new Promise((resolve, reject) => {
+        (window as any).google.script.run
+          .withSuccessHandler((res: string) => {
+            try {
+              const parsed = JSON.parse(res);
+              if (parsed && typeof parsed === 'object' && parsed.error) {
+                reject(new Error(parsed.error));
+              } else {
+                resolve(parsed);
+              }
+            } catch (e) {
+              resolve(res);
+            }
+          })
+          .withFailureHandler((err: any) => reject(new Error(err.message || "Lỗi giao tiếp máy chủ Google.")))
+          .apiRouter(url, method, body ? JSON.stringify(body) : null);
+      });
+    }
+
+    // 2. Local Node.js Environment (Development)
     const baseUrl = window.location.hostname === "localhost" && (window as any).Capacitor 
       ? "https://personal-igjw.onrender.com" 
       : "";
@@ -203,7 +224,9 @@ export default function App() {
         apiCall("/api/crm")
       ]);
 
-      if (settingsData) setSettings(settingsData);
+      if (settingsData && Object.keys(settingsData).length > 0) {
+        setSettings(prev => ({ ...prev, ...settingsData }));
+      }
       if (tasksData) setTasks(tasksData);
       if (projectsData) setProjects(projectsData);
       if (schedulesData) setSchedules(schedulesData);
@@ -515,13 +538,6 @@ export default function App() {
                     theme={theme}
                     setTheme={setTheme}
                     handleTriggerWebhookSetup={handleTriggerWebhookSetup}
-                  />
-                  <GoogleSheetsSync
-                    settings={settings}
-                    onSaveSettings={handleSaveSettings}
-                    apiCall={apiCall}
-                    refreshData={loadAllData}
-                    showToast={showToast}
                   />
                 </div>
               )}

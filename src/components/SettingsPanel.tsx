@@ -45,21 +45,6 @@ export default function SettingsPanel({
             />
           </div>
 
-
-
-          {/* Google Spreadsheet ID */}
-          <div>
-            <label className="block text-[11.5px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
-              Google Spreadsheet ID (Dành cho Auto-Sync)
-            </label>
-            <input
-              type="text"
-              readOnly
-              className="w-full bg-black/20 border border-[var(--border-color)] rounded-lg px-3 py-2 text-[13.5px] text-[var(--text-muted)] cursor-not-allowed"
-              value="1i7Ko3USW_UjsIeURYj9iNGcU91GYpyO9QooEdhNk8WY"
-            />
-          </div>
-
           {/* Save */}
           <div className="flex flex-col sm:flex-row gap-3 mt-2 border-t border-[var(--border-color)] pt-5">
             <button
